@@ -78,11 +78,12 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
             key={currentIndex}
             src={validImages[currentIndex]}
             alt={`${title} - Photo ${currentIndex + 1}`}
+            decoding="async"
             initial={{ opacity: 0, scale: 1.03 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="w-full h-full object-cover object-center"
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="w-full h-full object-cover object-center transform-gpu"
           />
         </AnimatePresence>
 

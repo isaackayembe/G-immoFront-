@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
   };
 
   return (
-    <header className="w-full top-0 sticky z-50 bg-[#F9F7F2]/95 backdrop-blur-md border-b border-[#0D0D0D]/10">
+    <header className="w-full top-0 sticky z-50 bg-[#F9F7F2] border-b border-[#0D0D0D]/10 transform-gpu">
       <div className="flex justify-between items-center h-16 sm:h-20 px-4 sm:px-6 md:px-12 max-w-[1280px] mx-auto">
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-2 sm:gap-4 min-w-0">
@@ -33,7 +33,11 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             <img
               src={LOGO_URL}
               alt="G Business Immo Logo"
-              className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover shadow-sm border border-[#C5A059]/40 group-hover:scale-105 transition-transform shrink-0"
+              width={44}
+              height={44}
+              loading="eager"
+              decoding="async"
+              className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover border border-[#C5A059]/40 group-hover:scale-105 transition-transform duration-200 shrink-0 transform-gpu"
             />
             <div className="flex flex-col min-w-0">
               <span className="font-serif text-[16px] sm:text-[19px] font-bold tracking-tight text-[#0D0D0D] leading-none truncate">

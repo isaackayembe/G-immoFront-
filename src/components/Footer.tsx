@@ -9,7 +9,11 @@ export const Footer: React.FC = () => {
           <img
             src={LOGO_URL}
             alt="G Business Immo Logo"
-            className="h-12 w-12 rounded-full object-cover border border-[#C5A059]/40"
+            width={48}
+            height={48}
+            loading="lazy"
+            decoding="async"
+            className="h-12 w-12 rounded-full object-cover border border-[#C5A059]/40 shrink-0"
           />
           <div>
             <span className="font-serif text-[20px] font-bold tracking-tight text-[#F9F7F2] block">

@@ -21,6 +21,10 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({ onNavigate }) => {
             <img
               src={LOGO_URL}
               alt="G Business Immo Logo"
+              width={80}
+              height={80}
+              loading="lazy"
+              decoding="async"
               className="w-20 h-20 rounded-full object-cover border-2 border-[#C5A059] shadow-md"
             />
           </div>

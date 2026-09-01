@@ -16,32 +16,17 @@
   }
 }
 
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-smoothing: antialiased;
-}
-
 .minimal-input {
   border: none;
   border-bottom: 1px solid #0D0D0D;
   border-radius: 0;
   background-color: transparent;
   padding: 8px 0;
-  box-shadow: none !important;
+  box-shadow: none;
 }
 
 .minimal-input:focus {
   outline: none;
   border-bottom-color: #C5A059;
-  box-shadow: none !important;
+  box-shadow: none;
 }

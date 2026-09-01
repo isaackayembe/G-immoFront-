@@ -135,13 +135,17 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
                 onClick={() => {
                   setActivePropertyModal(property);
                 }}
-                className="flex flex-col gap-4 group cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md bg-white p-4 border border-[#8C6D3E]/20"
+                className="flex flex-col gap-4 group cursor-pointer transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md bg-white p-4 border border-[#8C6D3E]/20 transform-gpu"
               >
-                <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#F9F7F2]">
+                <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#f0eee9]">
                   <img
                     src={property.imageUrl}
                     alt={property.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    width={600}
+                    height={450}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out transform-gpu"
                   />
                   {/* Status Tag */}
                   <div
@@ -160,7 +164,7 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
 
                   {/* Multi-photo badge */}
                   {(property.images?.length ?? 1) > 1 && (
-                    <div className="absolute bottom-3 right-3 bg-[#0D0D0D]/80 backdrop-blur-sm border border-[#8C6D3E]/40 px-2.5 py-1 text-[#F9F7F2] font-sans text-[10px] font-semibold flex items-center gap-1.5 shadow-sm">
+                    <div className="absolute bottom-3 right-3 bg-[#0D0D0D]/90 border border-[#8C6D3E]/40 px-2.5 py-1 text-[#F9F7F2] font-sans text-[10px] font-semibold flex items-center gap-1.5 shadow-sm">
                       <ImageIcon size={12} className="text-[#C5A059]" />
                       <span>{property.images?.length} Photos</span>
                     </div>

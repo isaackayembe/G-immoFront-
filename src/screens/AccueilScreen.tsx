@@ -98,13 +98,17 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
           {featuredProperty && (
             <div
               onClick={() => setActivePropertyModal(featuredProperty)}
-              className="col-span-1 md:col-span-8 group relative overflow-hidden bg-white border border-[#8C6D3E]/20 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+              className="col-span-1 md:col-span-8 group relative overflow-hidden bg-white border border-[#8C6D3E]/20 shadow-sm hover:shadow-md transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 cursor-pointer transform-gpu"
             >
-              <div className="relative h-[320px] md:h-[400px] w-full overflow-hidden">
+              <div className="relative h-[320px] md:h-[400px] w-full overflow-hidden bg-[#f0eee9]">
                 <img
                   src={featuredProperty.imageUrl}
                   alt={featuredProperty.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  width={800}
+                  height={400}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out transform-gpu"
                 />
                 <div className="absolute top-4 left-4 bg-[#C5A059] text-[#0D0D0D] font-sans text-[10px] font-semibold tracking-widest uppercase px-3 py-1 shadow-sm">
                   {featuredProperty.tag || 'EXCLUSIVITÉ'}
@@ -112,7 +116,7 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
 
                 {/* Multi-photo badge */}
                 {(featuredProperty.images?.length ?? 1) > 1 && (
-                  <div className="absolute bottom-4 right-4 bg-[#0D0D0D]/80 backdrop-blur-sm border border-[#8C6D3E]/40 px-3 py-1.5 text-[#F9F7F2] font-sans text-[11px] font-semibold flex items-center gap-1.5 shadow-sm">
+                  <div className="absolute bottom-4 right-4 bg-[#0D0D0D]/90 border border-[#8C6D3E]/40 px-3 py-1.5 text-[#F9F7F2] font-sans text-[11px] font-semibold flex items-center gap-1.5 shadow-sm">
                     <ImageIcon size={13} className="text-[#C5A059]" />
                     <span>{featuredProperty.images?.length} Photos</span>
                   </div>
@@ -156,13 +160,17 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
               <div
                 key={prop.id}
                 onClick={() => setActivePropertyModal(prop)}
-                className="group relative overflow-hidden bg-white border border-[#8C6D3E]/20 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer flex flex-col h-full"
+                className="group relative overflow-hidden bg-white border border-[#8C6D3E]/20 shadow-sm hover:shadow-md transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 cursor-pointer flex flex-col h-full transform-gpu"
               >
-                <div className="relative h-[200px] w-full overflow-hidden">
+                <div className="relative h-[200px] w-full overflow-hidden bg-[#f0eee9]">
                   <img
                     src={prop.imageUrl}
                     alt={prop.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    width={400}
+                    height={200}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out transform-gpu"
                   />
                   {prop.status !== 'Disponible' && (
                     <div className="absolute top-3 left-3 bg-[#0D0D0D] text-[#F9F7F2] font-sans text-[10px] font-semibold tracking-widest uppercase px-2.5 py-1">
@@ -171,7 +179,7 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
                   )}
 
                   {(prop.images?.length ?? 1) > 1 && (
-                    <div className="absolute bottom-3 right-3 bg-[#0D0D0D]/80 backdrop-blur-sm border border-[#8C6D3E]/40 px-2 py-0.5 text-[#F9F7F2] font-sans text-[10px] font-semibold flex items-center gap-1 shadow-sm">
+                    <div className="absolute bottom-3 right-3 bg-[#0D0D0D]/90 border border-[#8C6D3E]/40 px-2 py-0.5 text-[#F9F7F2] font-sans text-[10px] font-semibold flex items-center gap-1 shadow-sm">
                       <ImageIcon size={11} className="text-[#C5A059]" />
                       <span>{prop.images?.length} Photos</span>
                     </div>
