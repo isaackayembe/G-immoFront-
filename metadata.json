@@ -1,0 +1,6 @@
+{
+  "name": "G Business Immo",
+  "description": "Application immobilière de prestige - G Business Immo",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
