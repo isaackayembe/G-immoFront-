@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScreenId, TransitionType } from '../types';
+import { pathFor } from '../routes';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { ArrowRight, Home, Key, Building2, TrendingUp } from 'lucide-react';
@@ -37,7 +38,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({ onNavigate }) =>
               Valorisation optimale de votre patrimoine. Nous assurons une mise en marché discrète et ciblée pour atteindre une clientèle qualifiée.
             </p>
             <a
-              href="#"
+              href={pathFor('offres')}
               onClick={(e) => {
                 e.preventDefault();
                 onNavigate('offres', 'none');
@@ -59,7 +60,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({ onNavigate }) =>
               Un accompagnement sur-mesure pour trouver la propriété d'exception correspondant parfaitement à vos exigences et votre style de vie.
             </p>
             <a
-              href="#"
+              href={pathFor('offres')}
               onClick={(e) => {
                 e.preventDefault();
                 onNavigate('offres', 'none');
@@ -81,7 +82,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({ onNavigate }) =>
               Gestion locative haut de gamme. Nous sélectionnons des biens de prestige et des locataires fiables pour une sérénité absolue.
             </p>
             <a
-              href="#"
+              href={pathFor('offres')}
               onClick={(e) => {
                 e.preventDefault();
                 onNavigate('offres', 'none');
@@ -103,7 +104,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({ onNavigate }) =>
               Conseil stratégique pour bâtir ou optimiser votre portefeuille immobilier. Des opportunités sélectionnées pour leur rendement et leur potentiel de valorisation.
             </p>
             <a
-              href="#"
+              href={pathFor('offres')}
               onClick={(e) => {
                 e.preventDefault();
                 onNavigate('offres', 'none');

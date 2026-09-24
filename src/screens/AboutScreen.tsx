@@ -2,7 +2,7 @@ import React from 'react';
 import { ScreenId, TransitionType } from '../types';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { LOGO_URL } from '../data';
+import { LOGO_URL } from '../config';
 import { Award, Shield, Users, Compass, CheckCircle2 } from 'lucide-react';
 
 interface AboutScreenProps {

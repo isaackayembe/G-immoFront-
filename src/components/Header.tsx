@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScreenId, TransitionType } from '../types';
-import { LOGO_URL } from '../data';
-import { Menu, X, LogIn } from 'lucide-react';
+import { pathFor } from '../routes';
+import { LOGO_URL } from '../config';
+import api from '../services/api';
+import { Menu, X, LogIn, LayoutDashboard, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   currentScreen: ScreenId;
@@ -11,6 +13,17 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideLogin = false }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAuth, setIsAuth] = useState(() => api.isAuthenticated());
+
+  useEffect(() => {
+    const handleAuthChange = () => setIsAuth(api.isAuthenticated());
+    window.addEventListener('auth-change', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      window.removeEventListener('auth-change', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
 
   const handleNavClick = (screen: ScreenId, transition: TransitionType = 'push') => {
     setMobileMenuOpen(false);
@@ -23,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           <a
-            href="#"
+            href={pathFor('accueil')}
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('accueil', 'push_back');
@@ -53,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex gap-8 items-center text-[12px] font-sans font-medium uppercase tracking-widest">
           <a
-            href="#"
+            href={pathFor('accueil')}
             onClick={(e) => {
               e.preventDefault();
               const trans = currentScreen === 'services' || currentScreen === 'offres' || currentScreen === 'contact' ? 'push_back' : 'none';
@@ -68,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             Accueil
           </a>
           <a
-            href="#"
+            href={pathFor('services')}
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('services', currentScreen === 'accueil' ? 'push' : 'none');
@@ -82,7 +95,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             Services
           </a>
           <a
-            href="#"
+            href={pathFor('offres')}
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('offres', currentScreen === 'accueil' ? 'push' : 'none');
@@ -96,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             Offres
           </a>
           <a
-            href="#"
+            href={pathFor('about')}
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('about', currentScreen === 'accueil' ? 'push' : 'none');
@@ -110,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             À propos
           </a>
           <a
-            href="#"
+            href={pathFor('contact')}
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('contact', 'push');
@@ -125,20 +138,48 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
           </a>
         </nav>
 
-        {/* Login Button Desktop */}
+        {/* Login / Dashboard Button Desktop */}
         {!hideLogin && (
-          <div className="hidden md:flex items-center">
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handleNavClick('login', 'slide_up');
-              }}
-              className="px-5 py-2.5 bg-[#0D0D0D] text-[#F9F7F2] font-sans text-[11px] font-semibold uppercase tracking-widest hover:bg-[#8C6D3E] transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <LogIn size={14} />
-              <span>Login</span>
-            </a>
+          <div className="hidden md:flex items-center gap-2">
+            {isAuth ? (
+              <>
+                <a
+                  href={pathFor('dashboard')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick('dashboard', 'push');
+                  }}
+                  className="px-5 py-2.5 bg-[#C5A059] text-[#0D0D0D] font-sans text-[11px] font-bold uppercase tracking-widest hover:bg-[#8C6D3E] hover:text-[#F9F7F2] transition-colors flex items-center gap-2 cursor-pointer shadow-xs"
+                >
+                  <LayoutDashboard size={14} />
+                  <span>Dashboard</span>
+                </a>
+                <button
+                  onClick={() => {
+                    api.logout();
+                    setIsAuth(false);
+                    handleNavClick('accueil', 'push_back');
+                  }}
+                  title="Déconnexion"
+                  className="px-3 py-2.5 border border-[#0D0D0D]/15 text-[#747878] hover:text-rose-600 hover:border-rose-300 font-sans text-[11px] font-semibold uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <LogOut size={13} />
+                  <span>Quitter</span>
+                </button>
+              </>
+            ) : (
+              <a
+                href={pathFor('login')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick('login', 'slide_up');
+                }}
+                className="px-5 py-2.5 bg-[#0D0D0D] text-[#F9F7F2] font-sans text-[11px] font-semibold uppercase tracking-widest hover:bg-[#8C6D3E] transition-colors flex items-center gap-2 cursor-pointer"
+              >
+                <LogIn size={14} />
+                <span>Login</span>
+              </a>
+            )}
           </div>
         )}
 
@@ -146,11 +187,15 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
         <div className="flex items-center gap-2 md:hidden">
           {!hideLogin && (
             <button
-              onClick={() => handleNavClick('login', 'slide_up')}
-              className="px-3 py-1.5 bg-[#0D0D0D] text-[#F9F7F2] font-sans text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+              onClick={() => handleNavClick(isAuth ? 'dashboard' : 'login', 'slide_up')}
+              className={`px-3 py-1.5 font-sans text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer ${
+                isAuth
+                  ? 'bg-[#C5A059] text-[#0D0D0D] font-bold'
+                  : 'bg-[#0D0D0D] text-[#F9F7F2]'
+              }`}
             >
-              <LogIn size={13} />
-              <span>Admin</span>
+              {isAuth ? <LayoutDashboard size={13} /> : <LogIn size={13} />}
+              <span>{isAuth ? 'Dashboard' : 'Admin'}</span>
             </button>
           )}
           <button
@@ -167,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#F9F7F2] border-b border-[#0D0D0D]/10 px-5 py-5 flex flex-col gap-2 shadow-xl animate-fade-in">
           <a
-            href="#"
+            href={pathFor('accueil')}
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('accueil', 'push_back');
@@ -180,7 +225,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             {currentScreen === 'accueil' && <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />}
           </a>
           <a
-            href="#"
+            href={pathFor('services')}
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('services', 'push');
@@ -193,7 +238,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             {currentScreen === 'services' && <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />}
           </a>
           <a
-            href="#"
+            href={pathFor('offres')}
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('offres', 'push');
@@ -206,7 +251,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             {currentScreen === 'offres' && <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />}
           </a>
           <a
-            href="#"
+            href={pathFor('about')}
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('about', 'push');
@@ -219,7 +264,7 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             {currentScreen === 'about' && <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />}
           </a>
           <a
-            href="#"
+            href={pathFor('contact')}
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('contact', 'push');
@@ -231,13 +276,36 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             <span>Contact & Estimation</span>
             {currentScreen === 'contact' && <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />}
           </a>
-          <button
-            onClick={() => handleNavClick('login', 'slide_up')}
-            className="w-full mt-2 px-6 py-3.5 bg-[#0D0D0D] text-[#F9F7F2] text-xs font-sans font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm cursor-pointer hover:bg-[#8C6D3E] transition-colors"
-          >
-            <LogIn size={15} className="text-[#C5A059]" />
-            <span>Login</span>
-          </button>
+          {isAuth ? (
+            <div className="space-y-2 mt-2">
+              <button
+                onClick={() => handleNavClick('dashboard', 'slide_up')}
+                className="w-full px-6 py-3.5 text-xs font-sans font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-colors bg-[#C5A059] text-[#0D0D0D] hover:bg-[#8C6D3E] hover:text-[#F9F7F2]"
+              >
+                <LayoutDashboard size={15} />
+                <span>Accéder au Dashboard</span>
+              </button>
+              <button
+                onClick={() => {
+                  api.logout();
+                  setIsAuth(false);
+                  handleNavClick('accueil', 'push_back');
+                }}
+                className="w-full px-6 py-2.5 text-xs font-sans font-semibold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors border border-rose-300 text-rose-600 bg-rose-50 hover:bg-rose-100"
+              >
+                <LogOut size={14} />
+                <span>Se Déconnecter</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => handleNavClick('login', 'slide_up')}
+              className="w-full mt-2 px-6 py-3.5 bg-[#0D0D0D] text-[#F9F7F2] text-xs font-sans font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm cursor-pointer hover:bg-[#8C6D3E] transition-colors"
+            >
+              <LogIn size={15} className="text-[#C5A059]" />
+              <span>Login</span>
+            </button>
+          )}
         </div>
       )}
     </header>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Maximize2, X, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { FALLBACK_IMAGE_URL } from '../services/api';
 
 interface PropertyImageCarouselProps {
   images: string[];
@@ -22,11 +23,19 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   // Ensure we have at least one image or fallback
   const validImages = images && images.length > 0
     ? images
-    : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80'];
+    : [FALLBACK_IMAGE_URL];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [direction, setDirection] = useState<number>(0);
+
+  // Gestion des erreurs de chargement d'image (404, URL invalide, etc.)
+  const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.currentTarget;
+    if (target.src !== FALLBACK_IMAGE_URL) {
+      target.src = FALLBACK_IMAGE_URL;
+    }
+  };
 
   const nextImage = useCallback(() => {
     setDirection(1);
@@ -79,6 +88,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
             src={validImages[currentIndex]}
             alt={`${title} - Photo ${currentIndex + 1}`}
             decoding="async"
+            onError={handleImgError}
             initial={{ opacity: 0, scale: 1.03 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
@@ -177,6 +187,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
               <img
                 src={imgUrl}
                 alt={`Miniature ${idx + 1}`}
+                onError={handleImgError}
                 className="w-full h-full object-cover"
               />
               {currentIndex === idx && (
@@ -220,6 +231,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
                   key={currentIndex}
                   src={validImages[currentIndex]}
                   alt={`${title} - Plein écran ${currentIndex + 1}`}
+                  onError={handleImgError}
                   initial={{ opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
@@ -262,7 +274,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
                       : 'border-transparent opacity-50 hover:opacity-90'
                   }`}
                 >
-                  <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={imgUrl} alt="" onError={handleImgError} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="100" fill="#0D0D0D"/>
+  <text x="100" y="115" font-family="Georgia, serif" font-size="52" font-weight="bold" text-anchor="middle" fill="#C5A059">G</text>
+  <text x="100" y="155" font-family="Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#F9F7F2" letter-spacing="3">IMMO</text>
+</svg>

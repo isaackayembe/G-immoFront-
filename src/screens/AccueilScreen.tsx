@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ScreenId, TransitionType, Property } from '../types';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { PropertyImageCarousel } from '../components/PropertyImageCarousel';
+import { pathFor, propertyPath } from '../routes';
 import {
   ArrowRight,
   MapPin,
@@ -13,7 +14,6 @@ import {
   Handshake,
   ShieldCheck,
   Image as ImageIcon,
-  X
 } from 'lucide-react';
 
 interface AccueilScreenProps {
@@ -22,7 +22,8 @@ interface AccueilScreenProps {
 }
 
 export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, properties }) => {
-  const [activePropertyModal, setActivePropertyModal] = useState<Property | null>(null);
+  const navigate = useNavigate();
+  const openProperty = (prop: Property) => navigate(propertyPath(prop.id), { state: { transition: 'slide_up' } });
   const publicProperties = properties.filter((p) => p.status !== 'Brouillon');
   const featuredProperty = publicProperties[0] || properties[0];
   const secondaryProperties = publicProperties.slice(1, 3);
@@ -80,7 +81,7 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
             </p>
           </div>
           <a
-            href="#"
+            href={pathFor('offres')}
             onClick={(e) => {
               e.preventDefault();
               onNavigate('offres', 'push');
@@ -97,7 +98,7 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
           {/* Featured Property (Spans 8 cols) */}
           {featuredProperty && (
             <div
-              onClick={() => setActivePropertyModal(featuredProperty)}
+              onClick={() => openProperty(featuredProperty)}
               className="col-span-1 md:col-span-8 group relative overflow-hidden bg-white border border-[#8C6D3E]/20 shadow-sm hover:shadow-md transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 cursor-pointer transform-gpu"
             >
               <div className="relative h-[320px] md:h-[400px] w-full overflow-hidden bg-[#f0eee9]">
@@ -159,7 +160,7 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
             {secondaryProperties.map((prop) => (
               <div
                 key={prop.id}
-                onClick={() => setActivePropertyModal(prop)}
+                onClick={() => openProperty(prop)}
                 className="group relative overflow-hidden bg-white border border-[#8C6D3E]/20 shadow-sm hover:shadow-md transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 cursor-pointer flex flex-col h-full transform-gpu"
               >
                 <div className="relative h-[200px] w-full overflow-hidden bg-[#f0eee9]">
@@ -229,88 +230,6 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
           </div>
         </div>
       </section>
-
-      {/* Property Detail Modal with Carousel */}
-      {activePropertyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D0D0D]/80 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white max-w-3xl w-full p-6 md:p-8 relative border border-[#8C6D3E]/20 shadow-xl max-h-[92vh] overflow-y-auto">
-            <button
-              onClick={() => setActivePropertyModal(null)}
-              className="absolute top-4 right-4 p-2 text-[#0D0D0D] hover:text-[#C5A059] transition-colors z-20 bg-white/80 rounded-full cursor-pointer"
-            >
-              <X size={24} />
-            </button>
-
-            <div className="mb-6">
-              <PropertyImageCarousel
-                images={activePropertyModal.images && activePropertyModal.images.length > 0
-                  ? activePropertyModal.images
-                  : [activePropertyModal.imageUrl]}
-                title={activePropertyModal.title}
-                aspectRatio="wide"
-                showThumbnails={true}
-                allowFullscreen={true}
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-              <h2 className="font-serif text-[28px] md:text-[32px] text-[#0D0D0D] font-bold">
-                {activePropertyModal.title}
-              </h2>
-              <span className="bg-[#C5A059] text-[#0D0D0D] font-sans font-bold text-[10px] tracking-widest uppercase px-3 py-1">
-                {activePropertyModal.status}
-              </span>
-            </div>
-
-            <p className="font-serif text-[24px] md:text-[28px] text-[#C5A059] font-bold mb-4">
-              {activePropertyModal.price}
-            </p>
-
-            <p className="font-sans text-[15px] text-[#747878] leading-relaxed mb-6">
-              {activePropertyModal.description}
-            </p>
-
-            <div className="grid grid-cols-2 gap-4 border-t border-b border-[#f0eee9] py-4 mb-6 font-sans text-[14px]">
-              <div>
-                <span className="text-[#747878] block text-xs uppercase tracking-wider">Localisation</span>
-                <span className="font-semibold text-[#0D0D0D]">{activePropertyModal.location}</span>
-              </div>
-              <div>
-                <span className="text-[#747878] block text-xs uppercase tracking-wider">Surface</span>
-                <span className="font-semibold text-[#0D0D0D]">{activePropertyModal.surface} m²</span>
-              </div>
-              <div>
-                <span className="text-[#747878] block text-xs uppercase tracking-wider">Type</span>
-                <span className="font-semibold text-[#0D0D0D]">{activePropertyModal.type}</span>
-              </div>
-              <div>
-                <span className="text-[#747878] block text-xs uppercase tracking-wider">Chambres / Pièces</span>
-                <span className="font-semibold text-[#0D0D0D]">
-                  {activePropertyModal.bedrooms || activePropertyModal.rooms || 4}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <button
-                onClick={() => {
-                  setActivePropertyModal(null);
-                  onNavigate('contact', 'push');
-                }}
-                className="flex-1 bg-[#0D0D0D] text-[#F9F7F2] font-sans font-semibold text-xs tracking-widest uppercase py-4 hover:bg-[#8C6D3E] transition-colors text-center cursor-pointer"
-              >
-                Demander une visite
-              </button>
-              <button
-                onClick={() => setActivePropertyModal(null)}
-                className="px-6 py-4 border border-[#0D0D0D] text-[#0D0D0D] font-sans font-semibold text-xs tracking-widest uppercase hover:bg-[#F9F7F2] cursor-pointer"
-              >
-                Fermer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Services Overview */}
       <section className="py-20 md:py-28 bg-[#f0eee9] border-y border-[#8C6D3E]/20">

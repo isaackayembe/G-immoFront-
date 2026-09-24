@@ -1,11 +1,12 @@
 import React from 'react';
-import { LOGO_URL } from '../data';
+import { LOGO_URL } from '../config';
 
 export const Footer: React.FC = () => {
   return (
     <footer className="w-full bg-[#0D0D0D] text-[#F9F7F2] px-6 md:px-12 py-12 border-t border-[#8C6D3E]/20 mt-auto">
       <div className="flex flex-col md:flex-row justify-between items-center max-w-[1280px] mx-auto gap-8">
         <div className="flex items-center gap-4 text-center md:text-left">
+
           <img
             src={LOGO_URL}
             alt="G Business Immo Logo"

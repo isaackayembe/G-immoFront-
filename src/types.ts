@@ -10,25 +10,8 @@ export type ScreenId =
 
 export type TransitionType = 'push' | 'push_back' | 'slide_up' | 'none';
 
-export interface Property {
-  id: string;
-  title: string;
-  price: string;
-  numericPrice: number;
-  location: string;
-  commune: string;
-  type: 'Résidentiel' | 'Commercial' | 'Hôtel Particulier' | 'Villa';
-  status: 'Disponible' | 'En cours' | 'Vendu' | 'Brouillon' | 'Urgent';
-  surface: number; // in m²
-  bedrooms?: number;
-  rooms?: number;
-  tag?: string; // e.g. "EXCLUSIVITÉ"
-  imageUrl: string;
-  images?: string[];
-  description?: string;
-  amenities?: string[];
-  address?: string;
-}
+// Re-export all API interfaces & enums
+export * from './types/api';
 
 export interface ContactFormData {
   name: string;

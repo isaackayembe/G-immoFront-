@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { ScreenId, TransitionType, Property } from '../types';
+import { propertyPath } from '../routes';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { PropertyImageCarousel } from '../components/PropertyImageCarousel';
-import { Filter, MapPin, Maximize, ChevronLeft, ChevronRight, X, Image as ImageIcon } from 'lucide-react';
+import { Filter, MapPin, Maximize, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 
 interface OffresScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
@@ -14,7 +15,6 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [selectedBudget, setSelectedBudget] = useState<string>('all');
-  const [activePropertyModal, setActivePropertyModal] = useState<Property | null>(null);
 
   // Filter properties (excluding drafts)
   const filteredProperties = useMemo(() => {
@@ -130,11 +130,10 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {filteredProperties.length > 0 ? (
             filteredProperties.map((property) => (
-              <article
+              <Link
                 key={property.id}
-                onClick={() => {
-                  setActivePropertyModal(property);
-                }}
+                to={propertyPath(property.id)}
+                state={{ transition: 'slide_up' }}
                 className="flex flex-col gap-4 group cursor-pointer transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md bg-white p-4 border border-[#8C6D3E]/20 transform-gpu"
               >
                 <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#f0eee9]">
@@ -195,7 +194,7 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
                     <li>{property.type}</li>
                   </ul>
                 </div>
-              </article>
+              </Link>
             ))
           ) : (
             <div className="col-span-1 md:col-span-3 text-center py-16 bg-white border border-[#8C6D3E]/20 shadow-sm">
@@ -228,107 +227,6 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
           </button>
         </section>
       </main>
-
-      {/* Property Detail Modal */}
-      {activePropertyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D0D0D]/80 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white max-w-3xl w-full p-6 md:p-8 relative border border-[#8C6D3E]/20 shadow-xl max-h-[92vh] overflow-y-auto">
-            <button
-              onClick={() => setActivePropertyModal(null)}
-              className="absolute top-4 right-4 p-2 text-[#0D0D0D] hover:text-[#C5A059] transition-colors z-20 bg-white/80 rounded-full cursor-pointer"
-            >
-              <X size={24} />
-            </button>
-
-            {/* Carousel with full photos & thumbnails */}
-            <div className="mb-6">
-              <PropertyImageCarousel
-                images={activePropertyModal.images && activePropertyModal.images.length > 0
-                  ? activePropertyModal.images
-                  : [activePropertyModal.imageUrl]}
-                title={activePropertyModal.title}
-                aspectRatio="wide"
-                showThumbnails={true}
-                allowFullscreen={true}
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-              <h2 className="font-serif text-[28px] md:text-[32px] text-[#0D0D0D] font-bold">
-                {activePropertyModal.title}
-              </h2>
-              <span className="bg-[#C5A059] text-[#0D0D0D] font-sans font-bold text-[10px] tracking-widest uppercase px-3 py-1">
-                {activePropertyModal.status}
-              </span>
-            </div>
-
-            <p className="font-serif text-[24px] md:text-[28px] text-[#C5A059] font-bold mb-4">
-              {activePropertyModal.price}
-            </p>
-
-            <p className="font-sans text-[15px] text-[#747878] leading-relaxed mb-6">
-              {activePropertyModal.description}
-            </p>
-
-            <div className="grid grid-cols-2 gap-4 border-t border-b border-[#f0eee9] py-4 mb-6 font-sans text-[14px]">
-              <div>
-                <span className="text-[#747878] block text-xs uppercase tracking-wider">Localisation</span>
-                <span className="font-semibold text-[#0D0D0D]">{activePropertyModal.location}</span>
-              </div>
-              <div>
-                <span className="text-[#747878] block text-xs uppercase tracking-wider">Surface</span>
-                <span className="font-semibold text-[#0D0D0D]">{activePropertyModal.surface} m²</span>
-              </div>
-              <div>
-                <span className="text-[#747878] block text-xs uppercase tracking-wider">Type</span>
-                <span className="font-semibold text-[#0D0D0D]">{activePropertyModal.type}</span>
-              </div>
-              <div>
-                <span className="text-[#747878] block text-xs uppercase tracking-wider">Chambres / Pièces</span>
-                <span className="font-semibold text-[#0D0D0D]">
-                  {activePropertyModal.bedrooms || activePropertyModal.rooms || 4}
-                </span>
-              </div>
-            </div>
-
-            {activePropertyModal.amenities && (
-              <div className="mb-6">
-                <span className="font-sans text-xs font-bold tracking-widest text-[#0D0D0D] uppercase block mb-2">
-                  Prestations Haut de Gamme
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {activePropertyModal.amenities.map((item, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-[#F9F7F2] text-[#0D0D0D] font-sans text-xs px-3 py-1 border border-[#8C6D3E]/20"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <button
-                onClick={() => {
-                  setActivePropertyModal(null);
-                  onNavigate('contact', 'push');
-                }}
-                className="flex-1 bg-[#0D0D0D] text-[#F9F7F2] font-sans font-semibold text-xs tracking-widest uppercase py-4 hover:bg-[#8C6D3E] transition-colors text-center cursor-pointer"
-              >
-                Demander une visite
-              </button>
-              <button
-                onClick={() => setActivePropertyModal(null)}
-                className="px-6 py-4 border border-[#0D0D0D] text-[#0D0D0D] font-sans font-semibold text-xs tracking-widest uppercase hover:bg-[#F9F7F2] cursor-pointer"
-              >
-                Fermer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>

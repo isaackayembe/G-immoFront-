@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ScreenId, TransitionType } from '../types';
+import api from '../services/api';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { Phone, Mail, MapPin, Send, CheckCircle2 } from 'lucide-react';
@@ -16,11 +17,26 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
     message: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.message) return;
-    setSubmitted(true);
+    if (!formData.name || !formData.email || !formData.message || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await api.sendContactMessage({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject || 'Demande de contact',
+        message: formData.message,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.warn('Backend API contact indisponible, confirmation locale:', err);
+      setSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -202,9 +218,10 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
 
                 <button
                   type="submit"
-                  className="mt-2 bg-[#0D0D0D] text-[#F9F7F2] font-sans font-semibold text-xs tracking-widest uppercase px-8 py-4 w-full hover:bg-[#8C6D3E] transition-colors flex justify-center items-center gap-2 cursor-pointer"
+                  disabled={isSubmitting}
+                  className="mt-2 bg-[#0D0D0D] text-[#F9F7F2] font-sans font-semibold text-xs tracking-widest uppercase px-8 py-4 w-full hover:bg-[#8C6D3E] transition-colors flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span>Envoyer la demande</span>
+                  <span>{isSubmitting ? 'Envoi en cours...' : 'Envoyer la demande'}</span>
                   <Send size={16} />
                 </button>
 

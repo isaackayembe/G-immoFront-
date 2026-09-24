@@ -1,20 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ScreenId, TransitionType } from '../types';
-import { LOGO_URL } from '../data';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import api from '../services/api';
+import { LOGO_URL } from '../config';
+import { SCREEN_PATHS } from '../routes';
+import { ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react';
 
 interface ConnexionScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
 }
 
 export const ConnexionScreen: React.FC<ConnexionScreenProps> = ({ onNavigate }) => {
-  const [email, setEmail] = useState('admin@gbusinessimmo.com');
-  const [password, setPassword] = useState('••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Page admin demandée avant la redirection vers /connexion (sinon le dashboard)
+  const from = (location.state as { from?: { pathname: string; search: string } } | null)?.from;
+  const goToAdmin = () =>
+    navigate(from ? from.pathname + from.search : SCREEN_PATHS.dashboard, {
+      replace: true,
+      state: { transition: 'none' },
+    });
+
+  useEffect(() => {
+    // Si déjà connecté (token JWT valide), rediriger vers le dashboard
+    if (api.isAuthenticated()) {
+      goToAdmin();
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onNavigate('dashboard', 'none');
+    if (isLoading) return;
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      // ✅ Seule une réponse valide du backend (token JWT) autorise l'accès
+      await api.login({ username: email, password });
+      goToAdmin();
+    } catch (err: any) {
+      // ❌ Aucun bypass — toute erreur bloque l'accès et affiche un message
+      const msg =
+        err?.message ||
+        'Identifiants incorrects ou serveur indisponible. Veuillez réessayer.';
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#F9F7F2] relative overflow-hidden text-[#0D0D0D]">
@@ -61,13 +99,20 @@ export const ConnexionScreen: React.FC<ConnexionScreenProps> = ({ onNavigate }) 
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {errorMessage && (
+              <div className="bg-rose-50 border border-rose-300 p-3 text-rose-800 text-xs font-sans flex items-center gap-2">
+                <AlertCircle size={16} className="text-rose-600 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
             <div className="relative">
               <label htmlFor="login-email" className="font-sans text-xs font-bold uppercase tracking-widest text-[#747878] block mb-1">
-                Adresse Email
+                Adresse Email / Identifiant
               </label>
               <input
                 id="login-email"
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -112,9 +157,10 @@ export const ConnexionScreen: React.FC<ConnexionScreenProps> = ({ onNavigate }) 
             <div className="pt-4">
               <button
                 type="submit"
-                className="w-full bg-[#0D0D0D] text-[#F9F7F2] font-sans text-xs font-bold tracking-widest uppercase py-4 px-8 hover:bg-[#8C6D3E] transition-colors duration-300 flex justify-center items-center gap-2 group cursor-pointer"
+                disabled={isLoading}
+                className="w-full bg-[#0D0D0D] text-[#F9F7F2] font-sans text-xs font-bold tracking-widest uppercase py-4 px-8 hover:bg-[#8C6D3E] transition-colors duration-300 flex justify-center items-center gap-2 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>SE CONNECTER</span>
+                <span>{isLoading ? 'CONNEXION EN COURS...' : 'SE CONNECTER'}</span>
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform text-[#C5A059]" />
               </button>
             </div>

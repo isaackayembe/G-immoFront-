@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { ScreenId, TransitionType, Property } from '../types';
-import { LOGO_URL } from '../data';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { ScreenId, TransitionType, Property, PropertyStatus, DashboardStats } from '../types';
+import { DashboardTab, DASHBOARD_TABS } from '../routes';
+import { LOGO_URL } from '../config';
+import api, { resolveImageUrl, FALLBACK_IMAGE_URL } from '../services/api';
 import { PropertyImageCarousel } from '../components/PropertyImageCarousel';
 import {
   LayoutDashboard,
@@ -22,14 +25,21 @@ import {
   X,
   Sparkles,
   Send,
-  AlertCircle
+  AlertCircle,
+  Edit3,
+  RefreshCw,
+  Save,
+  ExternalLink,
 } from 'lucide-react';
 
 interface DashboardAdminScreenProps {
-  onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
+  onNavigate: (screen: ScreenId, transition?: TransitionType, tab?: DashboardTab) => void;
   properties: Property[];
-  onUpdateStatus: (propertyId: string, newStatus: 'Disponible' | 'En cours' | 'Vendu' | 'Brouillon' | 'Urgent') => void;
+  onUpdateStatus: (propertyId: string, newStatus: PropertyStatus) => void;
   onDeleteProperty?: (propertyId: string) => void;
+  onUpdateProperty?: (updatedProperty: Property) => void;
+  onRefreshProperties?: () => Promise<void> | void;
+  onEditProperty?: (property: Property) => void;
 }
 
 export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
@@ -37,10 +47,20 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
   properties,
   onUpdateStatus,
   onDeleteProperty,
+  onUpdateProperty,
+  onRefreshProperties,
+  onEditProperty,
 }) => {
-  const [activeTab, setActiveTab] = useState<'offres' | 'brouillons' | 'analytics' | 'equipe' | 'parametres'>('offres');
+  // L'onglet actif vit dans l'URL (/admin?onglet=brouillons) : il survit au rafraîchissement
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('onglet') as DashboardTab | null;
+  const activeTab: DashboardTab = tabParam && DASHBOARD_TABS.includes(tabParam) ? tabParam : 'offres';
+  const setActiveTab = (tab: DashboardTab) =>
+    setSearchParams(tab === 'offres' ? {} : { onglet: tab }, { replace: true, state: { transition: 'none' } });
   const [previewProperty, setPreviewProperty] = useState<Property | null>(null);
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const urgent = properties.filter((p) => p.status === 'Urgent');
   const disponible = properties.filter((p) => p.status === 'Disponible');
@@ -48,36 +68,175 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
   const vendu = properties.filter((p) => p.status === 'Vendu');
   const brouillons = properties.filter((p) => p.status === 'Brouillon');
 
-  // Real-time dynamic portfolio calculations
+  // ⚡ Calculs 100% dynamiques et réactifs au millième de seconde
   const totalMandateValue = properties.reduce((acc, p) => acc + (p.numericPrice || 0), 0);
   const activeMandateValue = [...urgent, ...disponible, ...enCours].reduce((acc, p) => acc + (p.numericPrice || 0), 0);
   const soldMandateValue = vendu.reduce((acc, p) => acc + (p.numericPrice || 0), 0);
   const publishedCount = urgent.length + disponible.length + enCours.length;
   const avgPrice = publishedCount > 0 ? Math.round(activeMandateValue / publishedCount) : 0;
-  
-  // Conversion rate (sold + pending) / all non-draft
   const activeOrClosedCount = properties.filter((p) => p.status !== 'Brouillon').length;
   const conversionRate = activeOrClosedCount > 0 
     ? Math.round(((vendu.length + enCours.length) / activeOrClosedCount) * 100)
     : 0;
 
-  const handlePublishDraft = (prop: Property) => {
-    onUpdateStatus(prop.id, 'Disponible');
-    setNotification(`L'offre "${prop.title}" a été publiée avec succès !`);
+  const showNotification = (msg: string) => {
+    setNotification(msg);
     setTimeout(() => {
-      setNotification(null);
-    }, 4500);
+      setNotification((curr) => (curr === msg ? null : curr));
+    }, 3500);
   };
 
-  const handleDeleteDraft = (propId: string, title: string) => {
-    if (onDeleteProperty) {
-      onDeleteProperty(propId);
-      setNotification(`Le brouillon "${title}" a été supprimé.`);
-      setTimeout(() => {
-        setNotification(null);
-      }, 3500);
+  const handleStatusChange = (prop: Property, newStatus: PropertyStatus) => {
+    onUpdateStatus(prop.id, newStatus);
+    showNotification(`⚡ Le bien "${prop.title}" a été déplacé vers "${newStatus}" !`);
+  };
+
+  const handleDeleteItem = (propId: string, title: string) => {
+    if (window.confirm(`Confirmez-vous la suppression de "${title}" ?`)) {
+      if (onDeleteProperty) {
+        onDeleteProperty(propId);
+      }
+      showNotification(`🗑️ Le bien "${title}" a été supprimé.`);
     }
   };
+
+  const handlePublishDraft = async (prop: Property) => {
+    onUpdateStatus(prop.id, 'Disponible');
+    showNotification(`L'offre "${prop.title}" a été publiée avec succès !`);
+    try {
+      await api.updatePropertyStatus(prop.id, 'Disponible');
+    } catch (err) {
+      console.warn('Erreur mise à jour statut API backend:', err);
+    }
+  };
+
+  const handleDeleteDraft = async (propId: string, title: string) => {
+    if (onDeleteProperty) {
+      onDeleteProperty(propId);
+      showNotification(`Le brouillon "${title}" a été supprimé.`);
+    }
+    try {
+      await api.deleteProperty(propId);
+    } catch (err) {
+      console.warn('Erreur suppression API backend:', err);
+    }
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProperty) return;
+    const formattedPrice = editingProperty.price?.trim().startsWith('$')
+      ? editingProperty.price
+      : `$ ${Number(editingProperty.numericPrice || 0).toLocaleString()}`;
+    const updated: Property = {
+      ...editingProperty,
+      price: formattedPrice,
+      imageUrl: resolveImageUrl(editingProperty.imageUrl),
+    };
+    if (onUpdateProperty) {
+      onUpdateProperty(updated);
+    }
+    showNotification(`✅ L'offre "${updated.title}" a été modifiée avec succès.`);
+    setEditingProperty(null);
+
+    try {
+      await api.updateProperty(updated.id, {
+        title: updated.title,
+        numericPrice: updated.numericPrice,
+        commune: updated.commune,
+        address: updated.address || undefined,
+        type: updated.type,
+        status: updated.status,
+        surface: updated.surface,
+        bedrooms: updated.bedrooms ?? undefined,
+        rooms: updated.rooms ?? undefined,
+        description: updated.description,
+        images: updated.images,
+      });
+    } catch (err) {
+      console.warn('Erreur mise à jour API backend:', err);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    if (onRefreshProperties) {
+      await onRefreshProperties();
+    }
+    showNotification('🔄 Données synchronisées avec succès !');
+    setIsRefreshing(false);
+  };
+
+  const renderKanbanCard = (prop: Property, borderColor: string, badgeBg: string, badgeText: string) => (
+    <div
+      key={prop.id}
+      className={`bg-white p-4 border ${borderColor} shadow-sm hover:shadow-md transition-all flex flex-col gap-3 group`}
+    >
+      <div className="relative h-36 overflow-hidden bg-[#0D0D0D]">
+        <img
+          src={prop.imageUrl}
+          alt={prop.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        <span className={`absolute top-2 left-2 ${badgeBg} ${badgeText} font-sans text-[10px] font-bold uppercase px-2 py-0.5 shadow-sm`}>
+          {prop.status}
+        </span>
+        {(prop.images?.length ?? 1) > 1 && (
+          <span className="absolute bottom-2 right-2 bg-[#0D0D0D]/80 text-white text-[10px] px-2 py-0.5 font-sans flex items-center gap-1">
+            <ImageIcon size={10} className="text-[#C5A059]" />
+            {prop.images?.length} Photos
+          </span>
+        )}
+      </div>
+      <div>
+        <h3 className="font-serif text-[17px] font-bold text-[#0D0D0D] line-clamp-1">{prop.title}</h3>
+        <p className="font-sans text-[13px] text-[#747878] truncate">{prop.location}</p>
+        <p className="font-serif text-[16px] font-bold text-[#8C6D3E] mt-1">{prop.price}</p>
+      </div>
+
+      {/* Quick Status Selector + Action Buttons */}
+      <div className="border-t border-[#f0eee9] pt-3 space-y-2">
+        <div className="flex items-center justify-between font-sans text-[12px]">
+          <span className="text-[#747878] text-[11px] font-semibold uppercase">Statut :</span>
+          <select
+            value={prop.status}
+            onChange={(e) => handleStatusChange(prop, e.target.value as any)}
+            className="bg-[#F9F7F2] px-2 py-1 border border-[#8C6D3E]/30 outline-none text-[#0D0D0D] font-medium cursor-pointer text-[12px]"
+          >
+            <option value="Urgent">Urgent</option>
+            <option value="Disponible">Disponible</option>
+            <option value="En cours">En cours</option>
+            <option value="Vendu">Vendu</option>
+            <option value="Brouillon">Brouillon</option>
+          </select>
+        </div>
+
+        <div className="flex items-center justify-end gap-1.5 pt-1">
+          <button
+            onClick={() => setPreviewProperty(prop)}
+            title="Aperçu carrousel"
+            className="p-1.5 border border-[#8C6D3E]/30 text-[#0D0D0D] hover:bg-[#F9F7F2] transition-colors rounded cursor-pointer"
+          >
+            <Eye size={13} className="text-[#C5A059]" />
+          </button>
+          <button
+            onClick={() => setEditingProperty(prop)}
+            title="Modifier ce bien"
+            className="p-1.5 border border-[#8C6D3E]/30 text-[#0D0D0D] hover:bg-[#F9F7F2] transition-colors rounded cursor-pointer"
+          >
+            <Edit3 size={13} className="text-[#8C6D3E]" />
+          </button>
+          <button
+            onClick={() => handleDeleteItem(prop.id, prop.title)}
+            title="Supprimer définitivement"
+            className="p-1.5 border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors rounded cursor-pointer"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex bg-[#0D0D0D] text-[#0D0D0D]">
@@ -195,7 +354,10 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
             <span>Retour au site public</span>
           </button>
           <button
-            onClick={() => onNavigate('login', 'push_back')}
+            onClick={() => {
+              api.logout();
+              onNavigate('accueil', 'push_back');
+            }}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-rose-400 hover:text-rose-300 font-sans text-[13px] transition-colors cursor-pointer"
           >
             <LogOut size={16} />
@@ -243,6 +405,16 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
               >
                 Site
               </button>
+              <button
+                onClick={() => {
+                  api.logout();
+                  onNavigate('accueil', 'push_back');
+                }}
+                className="text-rose-600 font-sans text-xs font-semibold px-2 py-1 border border-rose-200 bg-rose-50 flex items-center"
+                title="Déconnexion"
+              >
+                <LogOut size={13} />
+              </button>
             </div>
           </div>
 
@@ -281,6 +453,15 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
             </div>
 
             <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Synchroniser avec le serveur backend"
+              className="bg-white border border-[#8C6D3E]/30 text-[#0D0D0D] font-sans text-xs font-semibold uppercase tracking-wider px-3.5 py-2.5 hover:bg-[#F9F7F2] transition-colors flex items-center gap-2 cursor-pointer shadow-xs shrink-0"
+            >
+              <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#C5A059]' : 'text-[#8C6D3E]'} />
+              <span className="hidden sm:inline">{isRefreshing ? 'Sync...' : 'Actualiser'}</span>
+            </button>
+            <button
               onClick={() => onNavigate('ajouter_offre', 'slide_up')}
               className="hidden md:flex bg-[#0D0D0D] text-[#F9F7F2] font-sans text-xs font-bold tracking-widest uppercase px-5 py-2.5 hover:bg-[#8C6D3E] transition-colors items-center gap-2 cursor-pointer shadow-sm shrink-0"
             >
@@ -292,7 +473,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
 
         {/* Global Notification Banner */}
         {notification && (
-          <div className="bg-[#0D0D0D] text-[#F9F7F2] px-6 py-3 border-b border-[#C5A059] flex items-center justify-between animate-fade-in">
+          <div className="bg-[#0D0D0D] text-[#F9F7F2] px-6 py-3 border-b border-[#C5A059] flex items-center justify-between animate-fade-in sticky top-[65px] z-20 shadow-md">
             <div className="flex items-center gap-3">
               <CheckCircle2 size={18} className="text-[#C5A059]" />
               <span className="font-sans text-[14px] font-medium">{notification}</span>
@@ -326,46 +507,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {urgent.map((prop) => (
-                    <div
-                      key={prop.id}
-                      className="bg-white p-4 border border-rose-300 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3"
-                    >
-                      <div className="relative h-36 overflow-hidden bg-[#0D0D0D]">
-                        <img src={prop.imageUrl} alt={prop.title} className="w-full h-full object-cover" />
-                        <span className="absolute top-2 left-2 bg-rose-600 text-white font-sans text-[10px] font-bold uppercase px-2 py-0.5 shadow-sm">
-                          Urgent
-                        </span>
-                        {(prop.images?.length ?? 1) > 1 && (
-                          <span className="absolute bottom-2 right-2 bg-[#0D0D0D]/80 text-white text-[10px] px-2 py-0.5 font-sans flex items-center gap-1">
-                            <ImageIcon size={10} className="text-[#C5A059]" />
-                            {prop.images?.length} Photos
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="font-serif text-[18px] font-bold text-[#0D0D0D]">{prop.title}</h3>
-                        <p className="font-sans text-[13px] text-[#747878]">{prop.location}</p>
-                        <p className="font-serif text-[16px] font-bold text-rose-700 mt-1">{prop.price}</p>
-                      </div>
-
-                      {/* Quick Status Selector */}
-                      <div className="flex items-center justify-between border-t border-[#f0eee9] pt-3 font-sans text-[12px]">
-                        <span className="text-[#747878]">Changer statut:</span>
-                        <select
-                          value={prop.status}
-                          onChange={(e) => onUpdateStatus(prop.id, e.target.value as any)}
-                          className="bg-[#F9F7F2] px-2 py-1 border border-rose-300 outline-none text-[#0D0D0D] font-medium cursor-pointer"
-                        >
-                          <option value="Urgent">Urgent</option>
-                          <option value="Disponible">Disponible</option>
-                          <option value="En cours">En cours</option>
-                          <option value="Vendu">Vendu</option>
-                          <option value="Brouillon">Brouillon</option>
-                        </select>
-                      </div>
-                    </div>
-                  ))}
+                  {urgent.map((prop) => renderKanbanCard(prop, 'border-rose-300', 'bg-rose-600', 'text-white'))}
                   {urgent.length === 0 && (
                     <div className="text-center py-8 text-[#747878] font-sans text-xs italic">
                       Aucune offre urgente.
@@ -389,46 +531,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {disponible.map((prop) => (
-                    <div
-                      key={prop.id}
-                      className="bg-white p-4 border border-[#8C6D3E]/20 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3"
-                    >
-                      <div className="relative h-36 overflow-hidden bg-[#0D0D0D]">
-                        <img src={prop.imageUrl} alt={prop.title} className="w-full h-full object-cover" />
-                        <span className="absolute top-2 left-2 bg-[#C5A059] text-[#0D0D0D] font-sans text-[10px] font-bold uppercase px-2 py-0.5">
-                          {prop.type}
-                        </span>
-                        {(prop.images?.length ?? 1) > 1 && (
-                          <span className="absolute bottom-2 right-2 bg-[#0D0D0D]/80 text-white text-[10px] px-2 py-0.5 font-sans flex items-center gap-1">
-                            <ImageIcon size={10} className="text-[#C5A059]" />
-                            {prop.images?.length} Photos
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="font-serif text-[18px] font-bold text-[#0D0D0D]">{prop.title}</h3>
-                        <p className="font-sans text-[13px] text-[#747878]">{prop.location}</p>
-                        <p className="font-serif text-[16px] font-bold text-[#0D0D0D] mt-1">{prop.price}</p>
-                      </div>
-
-                      {/* Quick Status Selector */}
-                      <div className="flex items-center justify-between border-t border-[#f0eee9] pt-3 font-sans text-[12px]">
-                        <span className="text-[#747878]">Changer statut:</span>
-                        <select
-                          value={prop.status}
-                          onChange={(e) => onUpdateStatus(prop.id, e.target.value as any)}
-                          className="bg-[#F9F7F2] px-2 py-1 border border-[#8C6D3E]/30 outline-none text-[#0D0D0D] font-medium cursor-pointer"
-                        >
-                          <option value="Urgent">Urgent</option>
-                          <option value="Disponible">Disponible</option>
-                          <option value="En cours">En cours</option>
-                          <option value="Vendu">Vendu</option>
-                          <option value="Brouillon">Brouillon</option>
-                        </select>
-                      </div>
-                    </div>
-                  ))}
+                  {disponible.map((prop) => renderKanbanCard(prop, 'border-[#8C6D3E]/20', 'bg-[#C5A059]', 'text-[#0D0D0D]'))}
                   {disponible.length === 0 && (
                     <div className="text-center py-8 text-[#747878] font-sans text-xs italic">
                       Aucun bien disponible actuellement.
@@ -452,45 +555,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {enCours.map((prop) => (
-                    <div
-                      key={prop.id}
-                      className="bg-white p-4 border border-[#8C6D3E]/20 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3"
-                    >
-                      <div className="relative h-36 overflow-hidden bg-[#0D0D0D]">
-                        <img src={prop.imageUrl} alt={prop.title} className="w-full h-full object-cover" />
-                        <span className="absolute top-2 left-2 bg-[#8C6D3E] text-[#F9F7F2] font-sans text-[10px] font-bold uppercase px-2 py-0.5">
-                          Sous offre
-                        </span>
-                        {(prop.images?.length ?? 1) > 1 && (
-                          <span className="absolute bottom-2 right-2 bg-[#0D0D0D]/80 text-white text-[10px] px-2 py-0.5 font-sans flex items-center gap-1">
-                            <ImageIcon size={10} className="text-[#C5A059]" />
-                            {prop.images?.length} Photos
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="font-serif text-[18px] font-bold text-[#0D0D0D]">{prop.title}</h3>
-                        <p className="font-sans text-[13px] text-[#747878]">{prop.location}</p>
-                        <p className="font-serif text-[16px] font-bold text-[#0D0D0D] mt-1">{prop.price}</p>
-                      </div>
-
-                      <div className="flex items-center justify-between border-t border-[#f0eee9] pt-3 font-sans text-[12px]">
-                        <span className="text-[#747878]">Changer statut:</span>
-                        <select
-                          value={prop.status}
-                          onChange={(e) => onUpdateStatus(prop.id, e.target.value as any)}
-                          className="bg-[#F9F7F2] px-2 py-1 border border-[#8C6D3E]/30 outline-none text-[#0D0D0D] font-medium cursor-pointer"
-                        >
-                          <option value="Urgent">Urgent</option>
-                          <option value="Disponible">Disponible</option>
-                          <option value="En cours">En cours</option>
-                          <option value="Vendu">Vendu</option>
-                          <option value="Brouillon">Brouillon</option>
-                        </select>
-                      </div>
-                    </div>
-                  ))}
+                  {enCours.map((prop) => renderKanbanCard(prop, 'border-[#8C6D3E]/20', 'bg-[#8C6D3E]', 'text-white'))}
                   {enCours.length === 0 && (
                     <div className="text-center py-8 text-[#747878] font-sans text-xs italic">
                       Aucune transaction en cours actuellement.
@@ -514,45 +579,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {vendu.map((prop) => (
-                    <div
-                      key={prop.id}
-                      className="bg-white p-4 border border-[#8C6D3E]/20 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3 opacity-90"
-                    >
-                      <div className="relative h-36 overflow-hidden bg-[#0D0D0D]">
-                        <img src={prop.imageUrl} alt={prop.title} className="w-full h-full object-cover" />
-                        <span className="absolute top-2 left-2 bg-[#0D0D0D] text-[#F9F7F2] font-sans text-[10px] font-bold uppercase px-2 py-0.5">
-                          Vendu
-                        </span>
-                        {(prop.images?.length ?? 1) > 1 && (
-                          <span className="absolute bottom-2 right-2 bg-[#0D0D0D]/80 text-white text-[10px] px-2 py-0.5 font-sans flex items-center gap-1">
-                            <ImageIcon size={10} className="text-[#C5A059]" />
-                            {prop.images?.length} Photos
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="font-serif text-[18px] font-bold text-[#0D0D0D]">{prop.title}</h3>
-                        <p className="font-sans text-[13px] text-[#747878]">{prop.location}</p>
-                        <p className="font-serif text-[16px] font-bold text-[#0D0D0D] mt-1">{prop.price}</p>
-                      </div>
-
-                      <div className="flex items-center justify-between border-t border-[#f0eee9] pt-3 font-sans text-[12px]">
-                        <span className="text-[#747878]">Changer statut:</span>
-                        <select
-                          value={prop.status}
-                          onChange={(e) => onUpdateStatus(prop.id, e.target.value as any)}
-                          className="bg-[#F9F7F2] px-2 py-1 border border-[#8C6D3E]/30 outline-none text-[#0D0D0D] font-medium cursor-pointer"
-                        >
-                          <option value="Urgent">Urgent</option>
-                          <option value="Disponible">Disponible</option>
-                          <option value="En cours">En cours</option>
-                          <option value="Vendu">Vendu</option>
-                          <option value="Brouillon">Brouillon</option>
-                        </select>
-                      </div>
-                    </div>
-                  ))}
+                  {vendu.map((prop) => renderKanbanCard(prop, 'border-[#8C6D3E]/20', 'bg-[#0D0D0D]', 'text-white'))}
                   {vendu.length === 0 && (
                     <div className="text-center py-8 text-[#747878] font-sans text-xs italic">
                       Aucun bien classé en vendu.
@@ -689,22 +716,34 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                             <span>Publier cette offre</span>
                           </button>
 
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-3 gap-2">
+                            {/* Edit draft → AjouterOffreScreen complet */}
+                            <button
+                              onClick={() => onEditProperty ? onEditProperty(draft) : setEditingProperty(draft)}
+                              className="border border-[#8C6D3E]/40 text-[#8C6D3E] hover:bg-[#C5A059] hover:text-[#0D0D0D] font-sans text-[11px] font-semibold py-2 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                              title="Modifier ce brouillon (formulaire complet)"
+                            >
+                              <Edit3 size={13} />
+                              <span>Modifier</span>
+                            </button>
+
                             {/* Preview with Carousel */}
                             <button
                               onClick={() => setPreviewProperty(draft)}
-                              className="border border-[#8C6D3E]/30 text-[#0D0D0D] hover:bg-[#F9F7F2] font-sans text-[11px] font-semibold py-2 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                              className="border border-[#8C6D3E]/30 text-[#0D0D0D] hover:bg-[#F9F7F2] font-sans text-[11px] font-semibold py-2 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                              title="Aperçu carrousel"
                             >
-                              <Eye size={14} className="text-[#C5A059]" />
-                              <span>Aperçu carrousel</span>
+                              <Eye size={13} className="text-[#C5A059]" />
+                              <span>Aperçu</span>
                             </button>
 
                             {/* Delete draft */}
                             <button
                               onClick={() => handleDeleteDraft(draft.id, draft.title)}
-                              className="border border-rose-200 text-rose-600 hover:bg-rose-50 font-sans text-[11px] font-semibold py-2 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                              className="border border-rose-200 text-rose-600 hover:bg-rose-50 font-sans text-[11px] font-semibold py-2 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                              title="Supprimer définitivement"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={13} />
                               <span>Supprimer</span>
                             </button>
                           </div>
@@ -953,6 +992,241 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                 Fermer l'aperçu
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Property / Draft Edit Modal */}
+      {editingProperty && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D0D0D]/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white max-w-2xl w-full p-6 md:p-8 relative border border-[#8C6D3E]/30 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <button
+              onClick={() => setEditingProperty(null)}
+              className="absolute top-4 right-4 p-2 text-[#0D0D0D] hover:text-[#C5A059] transition-colors z-20 bg-white/90 rounded-full cursor-pointer shadow-sm"
+              title="Fermer"
+            >
+              <X size={22} />
+            </button>
+
+            <div className="flex items-center gap-2.5 border-b border-[#f0eee9] pb-4 mb-6">
+              <div className="w-10 h-10 rounded-full bg-[#C5A059]/15 flex items-center justify-center text-[#8C6D3E]">
+                <Edit3 size={20} />
+              </div>
+              <div>
+                <h2 className="font-serif text-[22px] md:text-[24px] font-bold text-[#0D0D0D] leading-tight">
+                  Modifier l'offre
+                </h2>
+                <p className="font-sans text-[12px] text-[#747878]">
+                  {editingProperty.status === 'Brouillon' ? 'Brouillon en cours' : 'Offre enregistrée'} • Réf: {editingProperty.id}
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div>
+                <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                  Titre de l'annonce
+                </label>
+                <input
+                  type="text"
+                  value={editingProperty.title}
+                  onChange={(e) => setEditingProperty({ ...editingProperty, title: e.target.value })}
+                  className="minimal-input text-[15px] text-[#0D0D0D] w-full"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                    Statut
+                  </label>
+                  <select
+                    value={editingProperty.status}
+                    onChange={(e) => setEditingProperty({ ...editingProperty, status: e.target.value as PropertyStatus })}
+                    className="w-full bg-[#F9F7F2] border border-[#8C6D3E]/30 p-2 font-sans text-[13px] outline-none text-[#0D0D0D] cursor-pointer"
+                  >
+                    <option value="Urgent">Urgent</option>
+                    <option value="Disponible">Disponible</option>
+                    <option value="En cours">En cours</option>
+                    <option value="Vendu">Vendu</option>
+                    <option value="Brouillon">Brouillon</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                    Type de bien
+                  </label>
+                  <select
+                    value={editingProperty.type}
+                    onChange={(e) => setEditingProperty({ ...editingProperty, type: e.target.value as any })}
+                    className="w-full bg-[#F9F7F2] border border-[#8C6D3E]/30 p-2 font-sans text-[13px] outline-none text-[#0D0D0D] cursor-pointer"
+                  >
+                    <option value="Villa">Villa</option>
+                    <option value="Résidentiel">Résidentiel Premium</option>
+                    <option value="Commercial">Espace Commercial</option>
+                    <option value="Hôtel Particulier">Hôtel Particulier</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                    Prix (USD)
+                  </label>
+                  <input
+                    type="number"
+                    value={editingProperty.numericPrice || ''}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10) || 0;
+                      setEditingProperty({
+                        ...editingProperty,
+                        numericPrice: val,
+                        price: `$ ${val.toLocaleString()}`
+                      });
+                    }}
+                    className="minimal-input text-[14px] text-[#0D0D0D] w-full"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                    Commune
+                  </label>
+                  <input
+                    type="text"
+                    value={editingProperty.commune}
+                    onChange={(e) => setEditingProperty({ ...editingProperty, commune: e.target.value, location: `Kinshasa, ${e.target.value}` })}
+                    className="minimal-input text-[14px] text-[#0D0D0D] w-full"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                    Adresse
+                  </label>
+                  <input
+                    type="text"
+                    value={editingProperty.address || ''}
+                    onChange={(e) => setEditingProperty({ ...editingProperty, address: e.target.value })}
+                    placeholder="ex: Boulevard du 30 Juin"
+                    className="minimal-input text-[14px] text-[#0D0D0D] w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                    Surface (m²)
+                  </label>
+                  <input
+                    type="number"
+                    value={editingProperty.surface || ''}
+                    onChange={(e) => setEditingProperty({ ...editingProperty, surface: parseInt(e.target.value, 10) || 0 })}
+                    className="minimal-input text-[14px] text-[#0D0D0D] w-full"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                    Chambres
+                  </label>
+                  <input
+                    type="number"
+                    value={editingProperty.bedrooms || ''}
+                    onChange={(e) => setEditingProperty({ ...editingProperty, bedrooms: parseInt(e.target.value, 10) || 0 })}
+                    className="minimal-input text-[14px] text-[#0D0D0D] w-full"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                    Pièces totales
+                  </label>
+                  <input
+                    type="number"
+                    value={editingProperty.rooms || ''}
+                    onChange={(e) => setEditingProperty({ ...editingProperty, rooms: parseInt(e.target.value, 10) || 0 })}
+                    className="minimal-input text-[14px] text-[#0D0D0D] w-full"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={editingProperty.description}
+                  onChange={(e) => setEditingProperty({ ...editingProperty, description: e.target.value })}
+                  className="minimal-input text-[14px] text-[#0D0D0D] w-full resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
+                  Image principale (URL)
+                </label>
+                <div className="flex gap-3 items-center">
+                  <div className="w-14 h-14 bg-[#0D0D0D] shrink-0 border border-[#8C6D3E]/30 overflow-hidden">
+                    <img
+                      src={resolveImageUrl(editingProperty.imageUrl)}
+                      alt="Aperçu"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = FALLBACK_IMAGE_URL;
+                      }}
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={editingProperty.imageUrl}
+                    onChange={(e) => setEditingProperty({ ...editingProperty, imageUrl: e.target.value })}
+                    className="minimal-input text-[13px] text-[#0D0D0D] flex-1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#f0eee9]">
+                {onEditProperty && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const toEdit = editingProperty;
+                      setEditingProperty(null);
+                      onEditProperty(toEdit);
+                    }}
+                    className="w-full sm:w-auto text-[#8C6D3E] hover:text-[#0D0D0D] font-sans text-[12px] font-semibold flex items-center gap-1.5 cursor-pointer py-2"
+                  >
+                    <ExternalLink size={14} />
+                    <span>Ouvrir dans l'éditeur complet</span>
+                  </button>
+                )}
+
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setEditingProperty(null)}
+                    className="px-4 py-2.5 border border-stone-300 text-stone-700 hover:bg-stone-50 font-sans text-xs font-semibold uppercase tracking-wider cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-[#0D0D0D] text-[#F9F7F2] hover:bg-[#8C6D3E] font-sans text-xs font-bold tracking-widest uppercase flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
+                  >
+                    <Save size={15} />
+                    <span>Enregistrer</span>
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
