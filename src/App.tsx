@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion, Variants } from 'motion/react';
 import {
   Routes,
   Route,
@@ -11,6 +11,7 @@ import {
 } from 'react-router-dom';
 import { ScreenId, TransitionType, Property, PropertyStatus } from './types';
 import api from './services/api';
+import { setupScrollReveal } from './scrollReveal';
 import { DashboardTab, pathFor, editPropertyPath, SCREEN_PATHS } from './routes';
 import { AccueilScreen } from './screens/AccueilScreen';
 import { ServicesScreen } from './screens/ServicesScreen';
@@ -42,6 +43,41 @@ function mergeWithOptimistic(
     return optimisticStatus ? { ...p, status: optimisticStatus } : p;
   });
   return [...merged, ...localOnly];
+}
+
+/* ───────── Transition de page : fondu simple ─────────
+ * La page qui part s'efface, la nouvelle apparaît. Seule l'opacité est animée (aucun transform),
+ * donc la barre de navigation fixe de l'accueil reste en place. Les variantes sont des fonctions :
+ * elles lisent le mode « instantané » au moment de l'animation, y compris pour la page qui sort. */
+const pageFade = (instantRef: React.MutableRefObject<boolean>): Variants => ({
+  initial: () => ({ opacity: instantRef.current ? 1 : 0 }),
+  animate: () => ({ opacity: 1, transition: { duration: instantRef.current ? 0 : 0.35, ease: 'easeOut' } }),
+  exit: () => ({ opacity: instantRef.current ? 1 : 0, transition: { duration: instantRef.current ? 0 : 0.2, ease: 'easeIn' } }),
+});
+
+/** Accepte une liste brute ou une réponse paginée DRF ({ results: [...] }). */
+function toPropertyList(data: unknown): Property[] {
+  if (Array.isArray(data)) return data as Property[];
+  const results = (data as { results?: unknown } | null)?.results;
+  return Array.isArray(results) ? (results as Property[]) : [];
+}
+
+/**
+ * Charge les biens depuis le backend.
+ * Admin connecté : liste complète (brouillons inclus). Si elle échoue (session expirée…), revient vide
+ * ou dans un format inattendu, on se rabat sur la liste publique pour que le site affiche toujours les offres.
+ */
+async function loadProperties(): Promise<Property[]> {
+  if (api.isAuthenticated()) {
+    try {
+      const adminList = toPropertyList(await api.getAdminProperties());
+      if (adminList.length > 0) return adminList;
+      console.warn('Liste admin vide ou inattendue : chargement de la liste publique.');
+    } catch (err) {
+      console.warn('Liste admin indisponible (session expirée ?) : chargement de la liste publique.', err);
+    }
+  }
+  return toPropertyList(await api.getProperties());
 }
 
 /** 🔒 Redirige vers /connexion si l'utilisateur n'est pas authentifié, puis le ramène ici après login. */
@@ -105,9 +141,7 @@ export default function App() {
     let isMounted = true;
     const fetchInitialData = async () => {
       try {
-        const data = api.isAuthenticated()
-          ? await api.getAdminProperties().catch(() => api.getProperties())
-          : await api.getProperties();
+        const data = await loadProperties();
         if (isMounted && Array.isArray(data) && data.length > 0) {
           setProperties(prev => mergeWithOptimistic(data, prev, optimisticStatuses.current));
         }
@@ -121,17 +155,13 @@ export default function App() {
     };
   }, []);
 
-  // Remonte en haut de page à chaque changement de page (sauf retour arrière du navigateur)
-  useEffect(() => {
-    if (navigationType !== 'POP') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [location.pathname, navigationType]);
+  // (La remontée en haut de page se fait à la fin du rideau, voir onExitComplete plus bas.)
 
-  // L'animation est transmise dans l'état de navigation ; bouton retour/avant du navigateur → pas d'animation
-  const transitionType: TransitionType =
-    (location.state as { transition?: TransitionType } | null)?.transition ??
-    (navigationType === 'POP' ? 'none' : 'push');
+  // L'animation est transmise dans l'état de navigation ; bouton retour/avant du navigateur sans état → pas d'animation
+  const stateTransition = (location.state as { transition?: TransitionType } | null)?.transition;
+  const reduceMotion = useReducedMotion();
+  const transitionType: TransitionType | 'instant' =
+    stateTransition ?? (navigationType === 'POP' ? 'instant' : 'push');
 
   const handleNavigate = (screen: ScreenId, transition: TransitionType = 'push', tab?: DashboardTab) => {
     navigate(pathFor(screen, tab), { state: { transition } });
@@ -197,9 +227,7 @@ export default function App() {
 
   const handleRefreshProperties = async () => {
     try {
-      const data = api.isAuthenticated()
-        ? await api.getAdminProperties().catch(() => api.getProperties())
-        : await api.getProperties();
+      const data = await loadProperties();
       if (Array.isArray(data) && data.length > 0) {
         // 🔀 Fusion intelligente : conserve les statuts optimistes + les brouillons locaux
         setProperties((prev) => mergeWithOptimistic(data, prev, optimisticStatuses.current));
@@ -209,48 +237,32 @@ export default function App() {
     }
   };
 
-  // Motion animation variants based on transition spec
-  const getVariants = () => {
-    switch (transitionType) {
-      case 'push':
-        return {
-          initial: { x: '100%', opacity: 0 },
-          animate: { x: '0%', opacity: 1 },
-          exit: { x: '-20%', opacity: 0 },
-        };
-      case 'push_back':
-        return {
-          initial: { x: '-100%', opacity: 0 },
-          animate: { x: '0%', opacity: 1 },
-          exit: { x: '20%', opacity: 0 },
-        };
-      case 'slide_up':
-        return {
-          initial: { y: '100%', opacity: 0 },
-          animate: { y: '0%', opacity: 1 },
-          exit: { y: '-10%', opacity: 0 },
-        };
-      case 'none':
-      default:
-        return {
-          initial: { opacity: 1 },
-          animate: { opacity: 1 },
-          exit: { opacity: 1 },
-        };
-    }
-  };
-
-  const variants = getVariants();
+  // Fondu instantané : retour arrière du navigateur sans état, ou mouvement réduit demandé
+  const instantRef = React.useRef(false);
+  instantRef.current = !!reduceMotion || transitionType === 'instant';
+  const pageVariants = React.useMemo(() => pageFade(instantRef), []);
+  const navTypeRef = React.useRef(navigationType);
+  navTypeRef.current = navigationType;
+  // Apparition progressive du contenu au défilement (pages publiques), relancée à chaque nouvelle page
+  const revealRef = React.useCallback((el: HTMLDivElement | null) => (el ? setupScrollReveal(el) : undefined), []);
 
   return (
     <div className="min-h-screen bg-[#fbf9f4] w-full overflow-x-hidden font-sans">
-      <AnimatePresence mode="wait">
+      <AnimatePresence
+        mode="wait"
+        initial={false}
+        onExitComplete={() => {
+          // Page cachée par le rideau : on remonte en haut instantanément (sauf retour arrière du navigateur)
+          if (navTypeRef.current !== 'POP') window.scrollTo({ top: 0, behavior: 'instant' });
+        }}
+      >
         <motion.div
           key={location.pathname}
-          initial={variants.initial}
-          animate={variants.animate}
-          exit={variants.exit}
-          transition={{ duration: transitionType === 'none' ? 0 : 0.35, ease: 'easeInOut' }}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          variants={pageVariants}
+          ref={revealRef}
           className="w-full min-h-screen"
         >
           <Routes location={location}>

@@ -32,6 +32,24 @@ export function resolveImageUrl(url: string | null | undefined): string {
   return FALLBACK_IMAGE_URL;
 }
 
+/**
+ * Transforme une réponse d'erreur du backend en message lisible.
+ * DRF renvoie soit { detail | message | error }, soit les erreurs par champ : { champ: ["message", …] }.
+ */
+function formatApiError(body: unknown, status: number): string {
+  if (body && typeof body === 'object') {
+    const b = body as Record<string, unknown>;
+    for (const key of ['message', 'error', 'detail']) {
+      if (typeof b[key] === 'string') return b[key] as string;
+    }
+    const fieldErrors = Object.entries(b)
+      .map(([field, value]) => `${field}: ${Array.isArray(value) ? value.join(' ') : String(value)}`)
+      .join(' · ');
+    if (fieldErrors) return fieldErrors;
+  }
+  return `Erreur HTTP ${status}`;
+}
+
 class ApiService {
   /** Headers JSON standard (avec Content-Type: application/json) */
   private getAuthHeaders(): HeadersInit {
@@ -65,7 +83,7 @@ class ApiService {
 
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({}));
-      throw new Error(errorBody.message || errorBody.error || `Erreur HTTP ${response.status}`);
+      throw new Error(formatApiError(errorBody, response.status));
     }
 
     if (response.status === 204) {
@@ -93,14 +111,8 @@ class ApiService {
     }
 
     if (!response.ok) {
-      let errorMsg = `Erreur HTTP ${response.status}`;
-      try {
-        const errorBody = await response.json();
-        errorMsg = errorBody.message || errorBody.error || errorBody.detail || errorMsg;
-      } catch {
-        // réponse non-JSON
-      }
-      throw new Error(errorMsg);
+      const errorBody = await response.json().catch(() => ({})); // réponse non-JSON → message générique
+      throw new Error(formatApiError(errorBody, response.status));
     }
 
     return response.json();

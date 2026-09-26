@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ScreenId, TransitionType, Property } from '../types';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+import { HomeHero } from '../components/HomeHero';
 import { pathFor, propertyPath } from '../routes';
 import {
   ArrowRight,
@@ -33,41 +34,7 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
       <Header currentScreen="accueil" onNavigate={onNavigate} />
 
       {/* Hero Section */}
-      <section className="relative min-h-[520px] md:min-h-[580px] lg:h-[80vh] flex items-center justify-center overflow-hidden py-16 md:py-24">
-        <div className="absolute inset-0 z-0">
-          <div
-            className="bg-cover bg-center w-full h-full transform scale-105 transition-transform duration-1000"
-            style={{
-              backgroundImage: `url("https://lh3.googleusercontent.com/aida-public/AB6AXuCnUQi8GVMVk20B43bGBIio3mvZGxfDI7fnCzli1xxZ5mlQ_Ojx5rTSyfT8Cka-xJbKTNyZ4hZ86zXP1X0qpMeoAKNeQ3V3Xmuw0pdAyIjy4ZWuZCsxogLTdhIM1khmUmfrZkuJyhcOD3wOd8FQeKZ-rJeNBbC0qWG-h4LJnjCAtNgaHXRBYxMn7zK6bijiPHGDup80ilZCVMtEhquIV8apWo7CJT1743ztCZdgwPGWSl40I-AgvbhW2Im4xGkHKqZJbgdHe3HIr1N8rg")`,
-            }}
-          />
-          <div className="absolute inset-0 bg-[#0D0D0D]/80" />
-        </div>
-
-        <div className="relative z-10 text-center px-4 sm:px-6 md:px-12 max-w-[1280px] mx-auto flex flex-col items-center">
-          <h1 className="font-serif text-[28px] sm:text-[38px] md:text-[56px] lg:text-[68px] leading-[1.15] text-[#F9F7F2] mb-4 sm:mb-6 max-w-4xl tracking-tight">
-            Expertise et Engagement pour votre projet immobilier
-          </h1>
-          <p className="font-sans text-[14px] sm:text-[16px] md:text-[18px] text-[#F9F7F2]/80 max-w-2xl mb-8 sm:mb-10 leading-relaxed font-light">
-            L'excellence au service de vos ambitions. Des biens d'exception sélectionnés avec la plus grande discrétion.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-            <button
-              onClick={() => onNavigate('offres', 'push')}
-              className="bg-[#C5A059] text-[#0D0D0D] font-sans text-[12px] font-semibold tracking-widest uppercase px-6 sm:px-8 py-3.5 sm:py-4 hover:bg-[#8C6D3E] hover:text-[#F9F7F2] transition-colors shadow-sm cursor-pointer w-full sm:w-auto"
-            >
-              DÉCOUVRIR NOS OFFRES
-            </button>
-            <button
-              onClick={() => onNavigate('contact', 'push')}
-              className="border border-[#F9F7F2]/40 text-[#F9F7F2] font-sans text-[12px] font-semibold tracking-widest uppercase px-6 sm:px-8 py-3.5 sm:py-4 hover:bg-white/10 transition-colors cursor-pointer w-full sm:w-auto"
-            >
-              ESTIMER MON BIEN
-            </button>
-          </div>
-        </div>
-      </section>
+      <HomeHero onNavigate={onNavigate} properties={properties} />
 
       {/* Dernières Offres Section */}
       <section className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 md:px-12 max-w-[1280px] mx-auto w-full">

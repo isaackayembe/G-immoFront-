@@ -1,5 +1,37 @@
 import React from 'react';
-import { LOGO_URL } from '../config';
+import { LOGO_URL, SOCIAL_LINKS } from '../config';
+
+const SOCIALS = [
+  {
+    label: 'Facebook',
+    href: SOCIAL_LINKS.facebook,
+    icon: (
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+        <path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.5V4.4c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.4H8v3h2.6V21h2.9Z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Instagram',
+    href: SOCIAL_LINKS.instagram,
+    icon: (
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+  {
+    label: 'TikTok',
+    href: SOCIAL_LINKS.tiktok,
+    icon: (
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+        <path d="M16.6 3c.3 2.1 1.6 3.6 3.9 3.8v3a7 7 0 0 1-3.9-1.2v6.1a5.7 5.7 0 1 1-5.7-5.7c.3 0 .6 0 .9.1v3.1a2.7 2.7 0 1 0 1.8 2.5V3h3Z" />
+      </svg>
+    ),
+  },
+];
 
 export const Footer: React.FC = () => {
   return (
@@ -55,6 +87,20 @@ export const Footer: React.FC = () => {
             Investisseurs
           </a>
         </nav>
+        <div className="flex items-center gap-3">
+          {SOCIALS.map(({ label, href, icon }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`G Business Immo sur ${label}`}
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-[#C5A059]/40 text-[#F9F7F2]/80 hover:bg-[#C5A059] hover:text-[#0D0D0D] hover:border-[#C5A059] transition-colors"
+            >
+              {icon}
+            </a>
+          ))}
+        </div>
       </div>
     </footer>
   );

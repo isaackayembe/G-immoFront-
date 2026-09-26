@@ -3,7 +3,8 @@ import { ScreenId, TransitionType } from '../types';
 import api from '../services/api';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { Phone, Mail, MapPin, Send, CheckCircle2 } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, CheckCircle2, Clock, MessageCircle } from 'lucide-react';
+import { CONTACT } from '../config';
 
 interface ContactScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
@@ -64,7 +65,7 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
             <div className="flex flex-col gap-6">
               {/* Phone */}
               <a
-                href="tel:+243810000000"
+                href={CONTACT.phoneHref}
                 className="flex items-center gap-4 group p-4 bg-white hover:bg-[#F9F7F2] transition-colors duration-300 border border-[#8C6D3E]/20 shadow-sm"
               >
                 <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#C5A059]/15 text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-[#0D0D0D] transition-colors">
@@ -75,14 +76,34 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
                     Téléphone
                   </p>
                   <p className="font-sans text-[18px] text-[#0D0D0D] font-bold">
-                    +243 81 000 0000
+                    {CONTACT.phoneDisplay}
+                  </p>
+                </div>
+              </a>
+
+              {/* WhatsApp */}
+              <a
+                href={CONTACT.whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 group p-4 bg-white hover:bg-[#F9F7F2] transition-colors duration-300 border border-[#8C6D3E]/20 shadow-sm"
+              >
+                <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#C5A059]/15 text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-[#0D0D0D] transition-colors">
+                  <MessageCircle size={20} />
+                </div>
+                <div>
+                  <p className="font-sans text-xs font-bold tracking-widest uppercase text-[#747878] mb-1">
+                    WhatsApp
+                  </p>
+                  <p className="font-sans text-[18px] text-[#0D0D0D] font-bold">
+                    {CONTACT.whatsappDisplay}
                   </p>
                 </div>
               </a>
 
               {/* Email */}
               <a
-                href="mailto:contact@gbusinessimmo.com"
+                href={`mailto:${CONTACT.email}`}
                 className="flex items-center gap-4 group p-4 bg-white hover:bg-[#F9F7F2] transition-colors duration-300 border border-[#8C6D3E]/20 shadow-sm"
               >
                 <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#C5A059]/15 text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-[#0D0D0D] transition-colors">
@@ -93,7 +114,7 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
                     Email
                   </p>
                   <p className="font-sans text-[18px] text-[#0D0D0D] font-bold">
-                    contact@gbusinessimmo.com
+                    {CONTACT.email}
                   </p>
                 </div>
               </a>
@@ -108,8 +129,25 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
                     Bureau
                   </p>
                   <p className="font-sans text-[18px] text-[#0D0D0D] font-bold">
-                    Boulevard du 30 Juin<br />Kinshasa, RDC
+                    {CONTACT.addressLine1}<br />{CONTACT.addressLine2}
                   </p>
+                </div>
+              </div>
+
+              {/* Horaires */}
+              <div className="flex items-center gap-4 p-4 bg-white border border-[#8C6D3E]/20 shadow-sm">
+                <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#C5A059]/15 text-[#C5A059]">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <p className="font-sans text-xs font-bold tracking-widest uppercase text-[#747878] mb-1">
+                    Horaires
+                  </p>
+                  {CONTACT.hours.map((h) => (
+                    <p key={h.days} className="font-sans text-[16px] text-[#0D0D0D] font-bold">
+                      {h.days} : {h.time}
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>
@@ -123,7 +161,7 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
               />
               <div className="absolute inset-0 bg-[#0D0D0D]/10 pointer-events-none" />
               <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 font-sans text-[12px] font-medium text-[#0D0D0D] shadow-sm">
-                📍 Boulevard du 30 Juin, Kinshasa Gombe
+                📍 {CONTACT.addressLine1}, {CONTACT.addressLine2}
               </div>
             </div>
           </section>

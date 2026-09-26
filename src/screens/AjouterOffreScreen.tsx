@@ -215,11 +215,30 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Refus du backend : on l'affiche et on reste sur le formulaire (rien n'est enregistré « en local » en cachette)
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (saveError) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [saveError]);
+
+  const describeSaveError = (err: unknown): string => {
+    const raw = err instanceof Error ? err.message : String(err);
+    const amenity = raw.match(/name=([^"\]·]+?) does not exist/);
+    if (amenity) {
+      return `Le serveur ne connaît pas la prestation « ${amenity[1].trim()} ». Ajoutez-la dans l'administration Django (Prestations), ou décochez-la, puis réessayez.`;
+    }
+    if (/Failed to fetch|NetworkError|Load failed/i.test(raw)) {
+      return 'Le serveur est injoignable. Vérifiez la connexion internet puis réessayez.';
+    }
+    return `Le serveur a refusé l'enregistrement : ${raw}`;
+  };
 
   const handleSaveDraft = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
+    setSaveError(null);
 
     const urlImages = images.filter((u) => !u.startsWith('blob:'));
     const finalFallback = FALLBACK_IMAGE_URL;
@@ -277,10 +296,6 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
         images: images.length > 0 ? images.map(resolveImageUrl) : [finalFallback],
       };
 
-      if (onUpdateProperty) {
-        onUpdateProperty(updated);
-      }
-
       try {
         await api.updateProperty(propertyToEdit.id, {
           title: updated.title,
@@ -296,11 +311,15 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
           amenities: updated.amenities,
           images: urlImages,
         });
+        if (onUpdateProperty) {
+          onUpdateProperty(updated);
+        }
+        onNavigate('dashboard', 'push_back', 'brouillons');
       } catch (err) {
         console.warn('Erreur mise à jour brouillon backend:', err);
+        setSaveError(describeSaveError(err));
       } finally {
         setIsSubmitting(false);
-        onNavigate('dashboard', 'push_back', 'brouillons');
       }
       return;
     }
@@ -314,32 +333,12 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
         imageUrl: resolveImageUrl(created.imageUrl),
         images: resolvedImages,
       });
+      onNavigate('dashboard', 'push_back', 'brouillons');
     } catch (err) {
-      console.warn('Backend API non disponible lors de la création du brouillon, enregistrement local:', err);
-      // Fallback local : utiliser les aperçus blob ou URLs externes
-      const previewImages = images.length > 0 ? images : [finalFallback];
-      const fallbackProp: Property = {
-        id: `prop-draft-${Date.now()}`,
-        title: payload.title,
-        price: formattedPrice,
-        numericPrice: payload.numericPrice,
-        location: `Kinshasa, ${commune}`,
-        commune: commune,
-        type: type,
-        status: 'Brouillon',
-        surface: payload.surface,
-        bedrooms: payload.bedrooms,
-        rooms: payload.rooms,
-        imageUrl: previewImages[0],
-        images: previewImages,
-        description: payload.description,
-        amenities: payload.amenities,
-        address: address,
-      };
-      onAddProperty(fallbackProp);
+      console.warn('Création du brouillon refusée par le backend:', err);
+      setSaveError(describeSaveError(err));
     } finally {
       setIsSubmitting(false);
-      onNavigate('dashboard', 'push_back', 'brouillons');
     }
   };
 
@@ -347,6 +346,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
+    setSaveError(null);
 
     const urlImages = images.filter((u) => !u.startsWith('blob:'));
     const finalFallback = FALLBACK_IMAGE_URL;
@@ -404,10 +404,6 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
         images: images.length > 0 ? images.map(resolveImageUrl) : [finalFallback],
       };
 
-      if (onUpdateProperty) {
-        onUpdateProperty(updated);
-      }
-
       try {
         await api.updateProperty(propertyToEdit.id, {
           title: updated.title,
@@ -423,11 +419,15 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
           amenities: updated.amenities,
           images: urlImages,
         });
+        if (onUpdateProperty) {
+          onUpdateProperty(updated);
+        }
+        onNavigate('dashboard', 'push_back');
       } catch (err) {
         console.warn('Erreur mise à jour publication backend:', err);
+        setSaveError(describeSaveError(err));
       } finally {
         setIsSubmitting(false);
-        onNavigate('dashboard', 'push_back');
       }
       return;
     }
@@ -441,32 +441,12 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
         imageUrl: resolveImageUrl(created.imageUrl),
         images: resolvedImages,
       });
+      onNavigate('dashboard', 'push_back');
     } catch (err) {
-      console.warn('Backend API non disponible lors de la publication, enregistrement local:', err);
-      // Fallback local : les blob URLs resteront valides jusqu'au rechargement de la page
-      const previewImages = images.length > 0 ? images : [finalFallback];
-      const fallbackProp: Property = {
-        id: `prop-${Date.now()}`,
-        title: payload.title,
-        price: formattedPrice,
-        numericPrice: payload.numericPrice,
-        location: `Kinshasa, ${commune}`,
-        commune: commune,
-        type: type,
-        status: 'Disponible',
-        surface: payload.surface,
-        bedrooms: payload.bedrooms,
-        rooms: payload.rooms,
-        imageUrl: previewImages[0],
-        images: previewImages,
-        description: payload.description,
-        amenities: payload.amenities,
-        address: address,
-      };
-      onAddProperty(fallbackProp);
+      console.warn('Publication refusée par le backend:', err);
+      setSaveError(describeSaveError(err));
     } finally {
       setIsSubmitting(false);
-      onNavigate('dashboard', 'push_back');
     }
   };
 
@@ -582,6 +562,24 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
 
         {/* Form Body */}
         <main className="p-4 sm:p-6 md:p-10 flex-grow max-w-[1440px] w-full mx-auto">
+          {saveError && (
+            <div
+              role="alert"
+              className="mb-6 flex items-start justify-between gap-4 border border-rose-300 bg-rose-50 px-4 py-3 font-sans text-[14px] text-rose-800"
+            >
+              <p>
+                <strong className="font-bold">Le bien n'a pas été enregistré.</strong> {saveError}
+              </p>
+              <button
+                type="button"
+                onClick={() => setSaveError(null)}
+                className="shrink-0 text-rose-700 hover:text-rose-900 font-bold cursor-pointer"
+                aria-label="Fermer le message"
+              >
+                ✕
+              </button>
+            </div>
+          )}
           <form onSubmit={handlePublish} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column (Details) */}
             <div className="lg:col-span-7 space-y-8">

@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>G Business Immo — Immobilier de Prestige à Kinshasa</title>
+<meta name="description" content="G Business Immo — vente et location d'appartements, villas et espaces commerciaux de prestige à Gombe, Ngaliema et Limete, Kinshasa.">
+<meta name="theme-color" content="#0D0D0D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/hero-tour-piscines.jpg" imagesrcset="assets/hero-tour-piscines-960.jpg 960w, assets/hero-tour-piscines.jpg 1920w" imagesizes="100vw">
+<script>
+  /* Intro (loader) : une fois par session, jamais en mouvement réduit. Décidé avant le premier rendu. */
+  (function () {
+    var d = document.documentElement, seen = false;
+    try { seen = sessionStorage.getItem('gbi-intro') === '1'; } catch (e) {}
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    d.classList.add(seen || reduce ? 'no-intro' : 'has-intro');
+  })();
+</script>
+<style>
+  :root {
+    --creme: #F9F7F2;
+    --creme-2: #F1ECE1;
+    --or: #C5A059;
+    --or-clair: #D9BD85;
+    --or-fonce: #8C6D3E;
+    --noir: #0D0D0D;
+    --noir-2: #1A1816;
+    --gris: #747878;
+    --gris-fonce: #545858;
+
+    --serif: "Bodoni Moda", "Didot", "Times New Roman", serif;
+    --sans: "Manrope", "Segoe UI", system-ui, sans-serif;
+
+    --ease-out: cubic-bezier(.16, 1, .3, 1);
+    --ease-io: cubic-bezier(.65, 0, .35, 1);
+    --ease-curtain: cubic-bezier(.76, 0, .24, 1);
+
+    --gutter: clamp(20px, 4.4vw, 72px);
+    --nav-h: 84px;
+    --search-h: 92px;
+    --slide-dur: 6.5s;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--creme);
+    color: var(--noir);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+  body.menu-open, html.has-intro:not(.ready) body { overflow: hidden; }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  button, select, input { font: inherit; color: inherit; }
+  button { background: none; border: 0; padding: 0; cursor: pointer; }
+
+  :focus-visible { outline: 2px solid var(--or); outline-offset: 3px; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -60px; z-index: 110;
+    background: var(--or); color: var(--noir); padding: 10px 16px;
+    font-weight: 600; font-size: 14px; transition: top .2s;
+  }
+  .skip-link:focus { top: 12px; }
+
+  /* =========================================================
+     INTRO — médaillon + anneau tracé + rideau qui se lève
+     (repris de la variante 3, attend le chargement réel de la 1re photo)
+     ========================================================= */
+  .intro {
+    position: fixed; inset: 0; z-index: 100; background: var(--noir);
+    display: grid; place-items: center; overflow: hidden;
+    transition: transform .7s var(--ease-curtain);
+  }
+  .no-intro .intro { display: none; }
+  .intro.is-lifting { transform: translateY(-100%); }
+  .intro::after { /* liseré doré sur le bord du rideau */
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--or) 30%, var(--or-clair) 50%, var(--or) 70%, transparent);
+    opacity: 0; transition: opacity .2s;
+  }
+  .intro.is-lifting::after { opacity: 1; }
+  .intro__mark { position: relative; width: min(46vw, 200px); aspect-ratio: 1; }
+  .intro__glow {
+    position: absolute; inset: -60%; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(197,160,89,.3), rgba(197,160,89,.07) 55%, transparent 75%);
+    opacity: 0; animation: i-glow 1.2s .15s ease-out forwards;
+  }
+  .intro__medal {
+    position: absolute; inset: 9%; width: 82%; height: 82%; border-radius: 50%;
+    opacity: 0; transform: scale(.9); filter: brightness(.6);
+    animation: i-medal .8s .05s var(--ease-out) forwards;
+  }
+  .intro__ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+  .intro__ring circle { fill: none; stroke-linecap: round; }
+  .intro__ring .track { stroke: rgba(197,160,89,.14); stroke-width: .5; }
+  /* L'anneau avance avec le chargement réel de la photo (piloté en JS via --p) */
+  .intro__ring .bar {
+    stroke: var(--or); stroke-width: .7;
+    stroke-dasharray: 302; stroke-dashoffset: calc(302 - 302 * var(--p, 0));
+    transition: stroke-dashoffset .5s var(--ease-out);
+  }
+  .intro__line {
+    position: absolute; left: 50%; top: calc(50% + min(23vw, 100px) + 30px); transform: translateX(-50%);
+    margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .42em; text-transform: uppercase; color: var(--or);
+    white-space: nowrap; opacity: 0; animation: i-fade .6s .7s ease-out forwards;
+  }
+  .intro__skip {
+    position: absolute; right: var(--gutter); bottom: 28px;
+    font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: rgba(249,247,242,.62);
+    padding: 10px 4px; border-bottom: 1px solid transparent; transition: color .3s, border-color .3s;
+  }
+  .intro__skip:hover, .intro__skip:focus-visible { color: var(--or-clair); border-color: var(--or); }
+  @keyframes i-glow { to { opacity: 1; } }
+  @keyframes i-medal { to { opacity: 1; transform: scale(1); filter: brightness(1); } }
+  @keyframes i-fade { to { opacity: 1; } }
+
+  /* =========================================================
+     NAVBAR — transparente sur la photo, verre sombre au défilement
+     ========================================================= */
+  .nav {
+    position: fixed; inset: 0 0 auto 0; z-index: 50;
+    height: var(--nav-h);
+    color: var(--creme);
+    transition: background-color .5s var(--ease-out), box-shadow .5s var(--ease-out), height .5s var(--ease-out),
+                -webkit-backdrop-filter .5s, backdrop-filter .5s;
+    opacity: 0; transform: translateY(-14px);
+  }
+  .ready .nav { animation: nav-in .9s var(--ease-out) .2s both; }
+  .nav::after { /* filet doré */
+    content: ""; position: absolute; left: var(--gutter); right: var(--gutter); bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(197,160,89,.75) 18%, rgba(197,160,89,.75) 82%, transparent);
+    transform-origin: left; transform: scaleX(0);
+    transition: left .5s var(--ease-out), right .5s var(--ease-out), opacity .5s;
+  }
+  .ready .nav::after { animation: hairline 1.4s var(--ease-io) .45s both; }
+  .nav.is-solid {
+    --nav-h: 70px;
+    background: rgba(13,13,13,.72);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    backdrop-filter: blur(16px) saturate(1.3);
+    box-shadow: 0 12px 32px -18px rgba(13,13,13,.5);
+  }
+  .nav.is-solid::after { left: 0; right: 0; opacity: .45; }
+
+  .nav__inner {
+    height: 100%;
+    max-width: 1560px; margin: 0 auto;
+    padding: 0 var(--gutter);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .brand { display: inline-flex; align-items: center; gap: 14px; justify-self: start; }
+  .brand__medal {
+    width: 46px; height: 46px; border-radius: 50%;
+    overflow: hidden; flex: none;
+    box-shadow: 0 0 0 1px rgba(197,160,89,.7), 0 0 0 4px rgba(197,160,89,.12);
+    transition: width .5s var(--ease-out), height .5s var(--ease-out), transform .6s var(--ease-out);
+  }
+  .brand:hover .brand__medal { transform: rotate(-8deg) scale(1.04); }
+  .nav.is-solid .brand__medal { width: 40px; height: 40px; }
+  .brand__medal img { width: 100%; height: 100%; object-fit: cover; }
+  .brand__text { display: flex; flex-direction: column; line-height: 1; }
+  .brand__name {
+    font-family: var(--serif); font-weight: 500;
+    font-size: 17px; letter-spacing: .2em;
+    white-space: nowrap;
+  }
+  .brand__name b { color: var(--or); font-weight: 500; }
+  .brand__tag {
+    margin-top: 6px;
+    font-size: 9.5px; letter-spacing: .34em; text-transform: uppercase;
+    opacity: .78;
+  }
+
+  .nav__links { display: flex; gap: clamp(20px, 2.6vw, 40px); list-style: none; margin: 0; padding: 0; }
+  .nav__links a {
+    position: relative; display: inline-block; padding: 8px 0;
+    font-size: 12.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase;
+    opacity: .86; transition: opacity .25s;
+  }
+  .nav__links a::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 2px; height: 1px;
+    background: var(--or); transform: scaleX(0); transform-origin: right;
+    transition: transform .45s var(--ease-out);
+  }
+  .nav__links a:hover, .nav__links a:focus-visible, .nav__links a[aria-current="page"] { opacity: 1; }
+  .nav__links a:hover::after, .nav__links a:focus-visible::after, .nav__links a[aria-current="page"]::after {
+    transform: scaleX(1); transform-origin: left;
+  }
+
+  .nav__actions { justify-self: end; display: flex; align-items: center; gap: 22px; }
+  .nav__admin {
+    font-size: 12px; font-weight: 500; letter-spacing: .08em;
+    opacity: .78; display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 0; transition: opacity .25s;
+  }
+  .nav__admin:hover, .nav__admin:focus-visible { opacity: 1; }
+  .nav__admin svg { width: 14px; height: 14px; }
+
+  .btn-wa {
+    display: inline-flex; align-items: center; gap: 10px;
+    height: 42px; padding: 0 18px;
+    border: 1px solid var(--or);
+    color: var(--or-clair);
+    font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+    transition: background-color .3s, color .3s, border-color .3s;
+  }
+  .btn-wa svg { width: 16px; height: 16px; flex: none; }
+  .btn-wa:hover, .btn-wa:focus-visible { background: var(--or); color: var(--noir); }
+  .btn-wa:active { background: var(--or-fonce); border-color: var(--or-fonce); color: var(--creme); }
+
+  .burger {
+    display: none;
+    width: 46px; height: 46px; margin-right: -10px;
+    position: relative;
+  }
+  .burger span {
+    position: absolute; left: 11px; right: 11px; height: 1.5px; background: currentColor;
+    transition: transform .45s var(--ease-out), opacity .3s, top .45s var(--ease-out);
+  }
+  .burger span:nth-child(1) { top: 17px; }
+  .burger span:nth-child(2) { top: 23px; right: 18px; }
+  .burger span:nth-child(3) { top: 29px; }
+  .burger[aria-expanded="true"] span:nth-child(1) { top: 23px; transform: rotate(45deg); }
+  .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .burger[aria-expanded="true"] span:nth-child(3) { top: 23px; transform: rotate(-45deg); }
+
+  /* Menu mobile */
+  .menu {
+    position: fixed; inset: 0; z-index: 45;
+    background:
+      radial-gradient(120% 70% at 100% 0%, rgba(197,160,89,.16), transparent 60%),
+      var(--noir);
+    color: var(--creme);
+    padding: calc(var(--nav-h) + 28px) var(--gutter) 32px;
+    display: flex; flex-direction: column;
+    clip-path: inset(0 0 100% 0);
+    visibility: hidden;
+    transition: clip-path .7s var(--ease-io), visibility 0s linear .7s;
+    overflow-y: auto;
+  }
+  .menu.is-open {
+    clip-path: inset(0 0 0 0); visibility: visible;
+    transition: clip-path .7s var(--ease-io), visibility 0s;
+  }
+  .menu ul { list-style: none; margin: 0; padding: 0; }
+  .menu li {
+    border-bottom: 1px solid rgba(197,160,89,.22);
+    opacity: 0; transform: translateY(18px);
+    transition: opacity .5s var(--ease-out), transform .6s var(--ease-out);
+  }
+  .menu.is-open li { opacity: 1; transform: none; }
+  .menu.is-open li:nth-child(1) { transition-delay: .18s; }
+  .menu.is-open li:nth-child(2) { transition-delay: .24s; }
+  .menu.is-open li:nth-child(3) { transition-delay: .30s; }
+  .menu.is-open li:nth-child(4) { transition-delay: .36s; }
+  .menu.is-open li:nth-child(5) { transition-delay: .42s; }
+  .menu li a {
+    display: block; padding: 16px 0;
+    font-family: var(--serif); font-size: 34px; line-height: 1.1;
+  }
+  .menu li a[aria-current="page"] { color: var(--or-clair); font-style: italic; }
+  .menu__foot { margin-top: auto; padding-top: 28px; display: grid; gap: 14px; }
+  .menu__foot .btn-wa { justify-content: center; height: 52px; color: var(--noir); background: var(--or); }
+  .menu__foot .nav__admin { justify-content: center; opacity: .8; }
+  .menu__addr { margin: 0; text-align: center; font-size: 12px; letter-spacing: .12em; color: rgba(249,247,242,.64); }
+
+  /* =========================================================
+     HERO — photo plein écran qui défile
+     ========================================================= */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    color: var(--creme);
+    background: var(--noir);
+    display: flex; flex-direction: column;
+    isolation: isolate;
+    touch-action: pan-y;
+  }
+  .hero__media {
+    position: absolute; inset: 0; z-index: -2; overflow: hidden;
+    background: var(--noir);
+  }
+  .ready .hero__media { animation: photo-in 1.4s ease-out both; }
+
+  /* Diaporama — fondu enchaîné + travelling lent, direction différente pour chaque bien */
+  .slide {
+    position: absolute; inset: 0; margin: 0;
+    opacity: 0; transition: opacity 1.4s ease;
+  }
+  .slide.is-prev { opacity: 1; z-index: 1; }
+  .slide.is-active { opacity: 1; z-index: 2; }
+  .slide picture, .slide img { width: 100%; height: 100%; }
+  .slide img {
+    object-fit: cover;
+    object-position: var(--pos, 50% 45%);
+    transform-origin: var(--origin, 50% 50%);
+    transform: var(--kb-from, scale(1.1));
+    will-change: transform;
+  }
+  .slide.is-active img, .slide.is-prev img {
+    transform: var(--kb-to, scale(1));
+    transition: transform 9s cubic-bezier(.22,.61,.36,1);
+  }
+
+  /* Le voile : le ciel et les piscines restent vifs,
+     l'ombre se concentre en bas à gauche (titre) et en bas à droite (vitrine). */
+  .hero__veil {
+    position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(13,13,13,.58) 0%, rgba(13,13,13,.42) 34%, rgba(13,13,13,.1) 56%, rgba(13,13,13,0) 66%),
+      radial-gradient(95% 85% at 0% 100%, rgba(13,13,13,.86) 0%, rgba(13,13,13,.66) 34%, rgba(13,13,13,.14) 64%, transparent 80%),
+      radial-gradient(55% 60% at 100% 100%, rgba(13,13,13,.72) 0%, rgba(13,13,13,.35) 45%, transparent 75%),
+      linear-gradient(to top, rgba(13,13,13,.7) 0%, rgba(13,13,13,.2) 32%, transparent 50%),
+      linear-gradient(to bottom, rgba(13,13,13,.55) 0%, rgba(13,13,13,0) 16%);
+  }
+  .hero__grain {
+    position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .09; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .hero__body {
+    flex: 1;
+    width: 100%; max-width: 1560px; margin: 0 auto;
+    padding: calc(var(--nav-h) + 40px) var(--gutter) calc(var(--search-h) / 2 + 96px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+    align-items: end;
+    gap: 56px;
+  }
+
+  /* Entrées : tout attend la fin du loader (.ready) */
+  .enter { opacity: 0; transform: translateY(18px); }
+  .ready .enter { animation: fade-up .9s var(--ease-out) both; }
+  .ready .enter.d1 { animation-delay: .45s; }
+  .ready .enter.d2 { animation-delay: 1.05s; }
+  .ready .enter.d3 { animation-delay: 1.18s; }
+  .ready .enter.d4 { animation-delay: 1.3s; }
+
+  .overline {
+    display: flex; align-items: center; gap: 14px;
+    margin: 0 0 26px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase;
+    color: var(--or-clair);
+  }
+  .overline::before {
+    content: ""; width: 44px; height: 1px; background: var(--or);
+    transform-origin: left; transform: scaleX(0);
+  }
+  .ready .overline::before { animation: hairline 1s var(--ease-io) .5s both; }
+  .overline span { color: rgba(249,247,242,.82); }
+
+  .headline {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(44px, 7vw, 108px);
+    line-height: .98;
+    letter-spacing: -.012em;
+    font-variation-settings: "opsz" 96;
+    text-shadow: 0 2px 30px rgba(13,13,13,.5), 0 1px 2px rgba(13,13,13,.35);
+  }
+  .headline .line { display: block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; }
+  .headline .line > span { display: inline-block; transform: translateY(105%); }
+  .ready .headline .line > span { animation: rise 1.05s var(--ease-out) both; }
+  .ready .headline .line:nth-child(1) > span { animation-delay: .55s; }
+  .ready .headline .line:nth-child(2) > span { animation-delay: .69s; }
+  .ready .headline .line:nth-child(3) > span { animation-delay: .83s; }
+  .headline em { font-style: italic; color: var(--or-clair); }
+  .headline .indent { padding-left: .9em; }
+
+  .lead {
+    max-width: 34em;
+    margin: 30px 0 0;
+    font-size: clamp(15px, 1.1vw, 17px);
+    line-height: 1.7;
+    color: rgba(249,247,242,.9);
+  }
+
+  .ctas {
+    display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center;
+    margin-top: 34px;
+  }
+  .btn-primary {
+    position: relative; overflow: hidden;
+    display: inline-flex; align-items: center; gap: 14px;
+    height: 56px; padding: 0 30px;
+    background: var(--or); color: var(--noir);
+    font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    transition: color .35s;
+    isolation: isolate;
+  }
+  .btn-primary::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: var(--creme);
+    transform: translateY(101%);
+    transition: transform .5s var(--ease-out);
+  }
+  .btn-primary:hover::before, .btn-primary:focus-visible::before { transform: none; }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary svg { width: 18px; height: 18px; transition: transform .5s var(--ease-out); }
+  .btn-primary:hover svg { transform: translateX(4px); }
+
+  .btn-text {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+    font-size: 13px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--creme);
+    border-bottom: 1px solid rgba(197,160,89,.7);
+    transition: color .3s, border-color .3s;
+  }
+  .btn-text:hover, .btn-text:focus-visible { color: var(--or-clair); border-color: var(--or-clair); }
+
+  /* ---------- La vitrine : description du bien affiché + contrôles ---------- */
+  .vitrine {
+    position: relative; isolation: isolate;
+    border-left: 1px solid rgba(197,160,89,.5);
+    padding-left: 28px;
+    text-shadow: 0 1px 10px rgba(13,13,13,.55);
+  }
+  .vitrine::before { /* ombre douce derrière la vitrine : lisible même sur un ciel clair */
+    content: ""; position: absolute; inset: -30px -90px -60px -70px; z-index: -1; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(13,13,13,.58), rgba(13,13,13,.3) 55%, transparent);
+  }
+  .vitrine__copies { display: grid; }
+  .vcopy {
+    grid-area: 1 / 1; align-self: end;
+    visibility: hidden;
+  }
+  .vcopy.is-active { visibility: visible; }
+  .vcopy > * { opacity: 0; transform: translateY(12px); transition: opacity .3s, transform .3s; }
+  .vcopy.is-active > * { opacity: 1; transform: none; transition: opacity .8s var(--ease-out), transform 1s var(--ease-out); }
+  .vcopy.is-active > :nth-child(1) { transition-delay: .3s; }
+  .vcopy.is-active > :nth-child(2) { transition-delay: .4s; }
+  .vcopy.is-active > :nth-child(3) { transition-delay: .5s; }
+  .vcopy.is-active > :nth-child(4) { transition-delay: .6s; }
+
+  .vcopy__status {
+    margin: 0 0 10px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--or-clair);
+  }
+  .vcopy__status i { width: 5px; height: 5px; background: var(--or); transform: rotate(45deg); flex: none; }
+  .vcopy__title {
+    margin: 0;
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(26px, 2.3vw, 34px); line-height: 1.08;
+    text-wrap: balance;
+    text-shadow: 0 1px 16px rgba(13,13,13,.5);
+  }
+  .vcopy__facts {
+    display: flex; flex-wrap: wrap; gap: 4px 18px;
+    margin: 12px 0 0; padding: 0; list-style: none;
+    font-size: 13.5px; color: rgba(249,247,242,.86);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .vcopy__facts li + li { position: relative; }
+  .vcopy__facts li + li::before {
+    content: ""; position: absolute; left: -10px; top: 50%; width: 3px; height: 3px; margin-top: -1.5px;
+    background: var(--or); border-radius: 50%;
+  }
+  .vcopy__link {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-top: 16px; padding: 6px 0;
+    font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--creme);
+    border-bottom: 1px solid rgba(197,160,89,.7);
+    transition: color .3s, border-color .3s, gap .4s var(--ease-out);
+  }
+  .vcopy__link svg { width: 16px; height: 10px; }
+  .vcopy__link:hover, .vcopy__link:focus-visible { color: var(--or-clair); border-color: var(--or-clair); gap: 14px; }
+
+  /* Progression sur toute la largeur, puis compteur à gauche et boutons à droite */
+  .vitrine__controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+    margin-top: 22px;
+  }
+  .vitrine__controls .segments { flex: 1 1 100%; order: -1; }
+  .counter {
+    margin-right: auto; white-space: nowrap;
+    display: flex; align-items: baseline; gap: 6px;
+    font-family: var(--serif); line-height: 1; color: var(--or-clair);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .counter__cur { font-size: 30px; min-width: 1.2em; display: inline-block; }
+  .counter__cur.is-flip { animation: flip .6s var(--ease-out); }
+  .counter__tot { font-size: 14px; color: rgba(249,247,242,.62); }
+  @keyframes flip { from { opacity: 0; transform: translateY(40%); } to { opacity: 1; transform: none; } }
+
+  /* Barre de progression segmentée : un segment par bien, cliquable */
+  .segments { flex: 1; display: flex; gap: 6px; min-width: 80px; }
+  .seg {
+    position: relative; flex: 1; height: 22px;
+  }
+  .seg::before, .seg i {
+    content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px;
+  }
+  .seg::before { background: rgba(249,247,242,.22); transition: background-color .3s; }
+  .seg:hover::before { background: rgba(249,247,242,.45); }
+  .seg i { background: var(--or-clair); transform-origin: left; transform: scaleX(0); }
+  .seg.is-done i { transform: scaleX(1); }
+
+  .ctrl {
+    width: 40px; height: 40px; display: grid; place-items: center; flex: none;
+    border: 1px solid rgba(197,160,89,.4); color: var(--or-clair);
+    transition: border-color .3s, background-color .3s, color .3s;
+  }
+  .ctrl svg { width: 16px; height: 10px; transition: transform .4s var(--ease-out); }
+  .ctrl:hover { border-color: var(--or); background: rgba(197,160,89,.12); }
+  .ctrl:active { background: var(--or); color: var(--noir); }
+  .ctrl--prev:hover svg { transform: translateX(-3px); }
+  .ctrl--next:hover svg { transform: translateX(3px); }
+  .ctrl--play { border-color: transparent; width: 32px; }
+  .ctrl--play:hover { border-color: rgba(197,160,89,.4); }
+  .ctrl--play svg { width: 11px; height: 11px; }
+  .ctrl-group { display: flex; gap: 6px; }
+
+  /* Aperçu du bien suivant */
+  .upnext {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 18px; padding-top: 16px;
+    border-top: 1px solid rgba(249,247,242,.14);
+    text-align: left; width: 100%;
+  }
+  .upnext__img {
+    width: 56px; height: 42px; object-fit: cover; flex: none;
+    box-shadow: 0 0 0 1px rgba(197,160,89,.35);
+    transition: box-shadow .3s;
+  }
+  .upnext:hover .upnext__img, .upnext:focus-visible .upnext__img { box-shadow: 0 0 0 1px var(--or-clair); }
+  .upnext__txt { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+  .upnext__k { font-size: 11px; color: rgba(249,247,242,.62); }
+  .upnext__t {
+    font-family: var(--serif); font-size: 16px; color: var(--creme);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Indice de défilement */
+  .scroll-cue {
+    position: absolute; left: 50%; bottom: calc(var(--search-h) / 2 + 22px);
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    font-size: 10px; font-weight: 600; letter-spacing: .34em; text-transform: uppercase;
+    color: rgba(249,247,242,.78);
+    opacity: 0;
+  }
+  .ready .scroll-cue { animation: fade-in 1s ease-out 1.8s both; }
+  .scroll-cue__line {
+    width: 1px; height: 46px; position: relative; overflow: hidden;
+    background: rgba(249,247,242,.2);
+  }
+  .scroll-cue__line::after {
+    content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 45%;
+    background: var(--or);
+    animation: drip 2.2s var(--ease-io) 2s infinite;
+  }
+
+  /* Barre de recherche — ancrée sur le bord bas du hero */
+  .search {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 5;
+    transform: translateY(50%);
+    padding: 0 var(--gutter);
+    opacity: 0;
+  }
+  .ready .search { animation: search-in 1s var(--ease-out) 1.35s both; }
+  .search__panel {
+    max-width: 1416px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: auto 1fr 1fr 1fr auto;
+    align-items: stretch;
+    min-height: var(--search-h);
+    background: rgba(249,247,242,.92);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    backdrop-filter: blur(18px) saturate(1.2);
+    color: var(--noir);
+    box-shadow: 0 30px 60px -30px rgba(13,13,13,.45), 0 0 0 1px rgba(140,109,62,.18);
+  }
+  .search__mode {
+    display: flex; flex-direction: column; justify-content: center; gap: 4px;
+    padding: 0 26px; margin: 0; min-width: 0; border: 0;
+    border-right: 1px solid rgba(140,109,62,.22);
+  }
+  .search__mode label {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--gris-fonce);
+    padding: 3px 0;
+  }
+  .search__mode input { position: absolute; opacity: 0; pointer-events: none; }
+  .search__mode .dot {
+    width: 9px; height: 9px; border: 1px solid var(--or-fonce); transform: rotate(45deg);
+    transition: background-color .25s;
+  }
+  .search__mode input:checked + .dot { background: var(--or-fonce); }
+  .search__mode input:checked ~ .txt { color: var(--noir); }
+  .search__mode input:focus-visible + .dot { outline: 2px solid var(--or); outline-offset: 3px; }
+
+  .field {
+    position: relative;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 26px;
+    border-right: 1px solid rgba(140,109,62,.22);
+    transition: background-color .25s;
+  }
+  .field:hover, .field:focus-within { background: rgba(255,255,255,.55); }
+  .field label {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--or-fonce);
+  }
+  .field select {
+    appearance: none; -webkit-appearance: none;
+    width: 100%;
+    margin-top: 6px; padding: 2px 28px 2px 0;
+    border: 0; background: transparent; cursor: pointer;
+    font-family: var(--serif); font-size: 20px; color: var(--noir);
+  }
+  .field select:focus-visible { outline: none; }
+  .field::after {
+    content: ""; position: absolute; right: 28px; top: 58%;
+    width: 7px; height: 7px;
+    border-right: 1.5px solid var(--or-fonce); border-bottom: 1.5px solid var(--or-fonce);
+    transform: translateY(-50%) rotate(45deg);
+    pointer-events: none;
+  }
+  .search__submit {
+    display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+    min-width: 220px; padding: 0 34px;
+    background: var(--or); color: var(--noir);
+    font-size: 13px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+    transition: background-color .3s, color .3s;
+  }
+  .search__submit svg { width: 18px; height: 18px; }
+  .search__submit:hover, .search__submit:focus-visible { background: var(--noir); color: var(--or-clair); }
+  .search__submit:active { background: var(--or-fonce); color: var(--creme); }
+  .search__toggle { display: none; }
+
+  /* =========================================================
+     SECTION SUIVANTE (aperçu)
+     ========================================================= */
+  .next {
+    background: var(--creme);
+    padding: calc(var(--search-h) / 2 + 88px) var(--gutter) 96px;
+  }
+  .next__inner {
+    max-width: 1416px; margin: 0 auto;
+    display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: end;
+  }
+  .kicker {
+    display: flex; align-items: center; gap: 14px; margin: 0;
+    font-size: 11.5px; font-weight: 700; letter-spacing: .3em; text-transform: uppercase;
+    color: var(--or-fonce);
+  }
+  .kicker::before { content: ""; width: 44px; height: 1px; background: var(--or-fonce); }
+  .next h2 {
+    margin: 20px 0 0;
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(32px, 3.6vw, 54px); line-height: 1.08;
+  }
+  .next h2 em { color: var(--or-fonce); }
+  .next__aside { display: grid; grid-template-columns: 150px 1fr; gap: 26px; align-items: end; }
+  .next__aside img { width: 150px; height: 190px; object-fit: cover; object-position: 30% 50%; }
+  .next__aside p { margin: 0; color: var(--gris-fonce); font-size: 15px; }
+  .next__aside a {
+    display: inline-block; margin-top: 14px;
+    font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--noir); border-bottom: 1px solid var(--or);
+    padding-bottom: 4px;
+  }
+  .next__aside a:hover, .next__aside a:focus-visible { color: var(--or-fonce); }
+
+  /* Chiffres clés — déplacés sous le hero pour laisser la place à la vitrine */
+  .proof {
+    max-width: 1416px; margin: 64px auto 0; padding: 28px 0 0;
+    list-style: none;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid rgba(140,109,62,.25);
+  }
+  .proof li { padding: 0 24px; }
+  .proof li:first-child { padding-left: 0; }
+  .proof li + li { border-left: 1px solid rgba(140,109,62,.2); }
+  .proof__num {
+    display: block;
+    font-family: var(--serif); font-size: 44px; line-height: 1;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .proof__num sup { font-size: .5em; color: var(--or-fonce); margin-left: 2px; vertical-align: .75em; }
+  .proof__label { display: block; margin-top: 8px; font-size: 14px; color: var(--gris-fonce); }
+
+  /* =========================================================
+     KEYFRAMES
+     ========================================================= */
+  @keyframes photo-in { from { opacity: 0; filter: brightness(.4); } to { opacity: 1; filter: none; } }
+  @keyframes rise { from { transform: translateY(105%); } to { transform: translateY(0); } }
+  @keyframes fade-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes nav-in { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+  @keyframes hairline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes search-in { from { opacity: 0; transform: translateY(calc(50% + 24px)); } to { opacity: 1; transform: translateY(50%); } }
+  @keyframes drip {
+    0% { transform: translateY(-100%); }
+    60%, 100% { transform: translateY(230%); }
+  }
+
+  /* =========================================================
+     RESPONSIVE
+     ========================================================= */
+  @media (max-width: 1180px) {
+    .nav__admin--desk { display: none; }
+    .search__panel { grid-template-columns: 1fr 1fr 1fr auto; }
+    .search__mode { display: none; }
+    .search__submit { min-width: 0; }
+    .hero__body { grid-template-columns: minmax(0, 1fr) minmax(260px, 300px); gap: 40px; }
+    .scroll-cue { display: none; }
+    .headline { font-size: clamp(44px, 6.4vw, 96px); }
+  }
+
+  @media (max-width: 960px) {
+    :root { --nav-h: 72px; }
+    .nav.is-solid { --nav-h: 64px; }
+    .nav__inner { grid-template-columns: 1fr auto; }
+    .nav__inner > nav, .nav__actions .btn-wa, .nav__admin--desk { display: none; }
+    .burger { display: block; }
+    .nav.menu-active { background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .nav.menu-active::after { opacity: 0; }
+
+    /* La vitrine passe au-dessus du titre, en bandeau compact */
+    .hero__body { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+    .vitrine { order: -1; border-left: 0; padding-left: 0; }
+    .upnext { display: none; }
+  }
+
+  @media (max-width: 720px) {
+    :root { --search-h: 0px; }
+    .brand__name { font-size: 14px; letter-spacing: .16em; }
+    .brand__tag { font-size: 8.5px; letter-spacing: .28em; }
+    .brand__medal { width: 40px; height: 40px; }
+    .brand { gap: 11px; }
+
+    .hero__veil {
+      background:
+        linear-gradient(to top, rgba(13,13,13,.92) 0%, rgba(13,13,13,.8) 42%, rgba(13,13,13,.3) 68%, rgba(13,13,13,0) 82%),
+        linear-gradient(to bottom, rgba(13,13,13,.55) 0%, rgba(13,13,13,0) 22%);
+    }
+    .hero__body { padding: calc(var(--nav-h) + 96px) var(--gutter) 28px; gap: 26px; }
+
+    /* Vitrine mobile : titre du bien + progression, les flèches cèdent la place au glissement */
+    .vcopy__status { font-size: 10px; margin-bottom: 6px; }
+    .vcopy__title { font-size: 22px; }
+    .vcopy__facts { font-size: 12.5px; margin-top: 6px; }
+    .vcopy__link { display: none; }
+    .vitrine__controls { margin-top: 14px; gap: 12px; }
+    .counter__cur { font-size: 22px; }
+    .ctrl--prev, .ctrl--next { display: none; }
+
+    .overline { font-size: 10px; letter-spacing: .22em; margin-bottom: 18px; gap: 10px; flex-wrap: wrap; }
+    .overline::before { width: 28px; }
+    .headline { font-size: clamp(40px, 11.6vw, 56px); line-height: 1.02; }
+    .headline .indent { padding-left: .5em; }
+    .lead { margin-top: 18px; font-size: 15px; line-height: 1.6; }
+    .ctas { margin-top: 24px; gap: 10px 22px; }
+    .btn-primary { height: 52px; padding: 0 22px; font-size: 12px; flex: 1 1 100%; justify-content: space-between; }
+    .btn-text { font-size: 12px; }
+
+    .scroll-cue { display: none; }
+
+    /* Recherche : bouton compact qui déplie le formulaire */
+    .search {
+      position: relative; transform: none;
+      padding: 0 var(--gutter) 22px;
+    }
+    .ready .search { animation: fade-up .9s var(--ease-out) 1.35s both; }
+    .search__toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; height: 54px; padding: 0 18px;
+      background: rgba(249,247,242,.92);
+      -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+      color: var(--noir);
+      font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    }
+    .search__toggle .ico { display: inline-flex; align-items: center; gap: 12px; }
+    .search__toggle svg { width: 18px; height: 18px; }
+    .search__toggle .chev { transition: transform .4s var(--ease-out); color: var(--or-fonce); }
+    .search__toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+    .search__panel {
+      grid-template-columns: 1fr;
+      min-height: 0;
+      max-height: 0; overflow: hidden;
+      box-shadow: none;
+      transition: max-height .6s var(--ease-io);
+      background: rgba(249,247,242,.96);
+    }
+    .search.is-open .search__panel { max-height: 420px; box-shadow: 0 0 0 1px rgba(140,109,62,.18); }
+    .search__panel .search__mode { display: flex; flex-direction: row; gap: 22px; padding: 14px 18px; border-right: 0; border-top: 1px solid rgba(140,109,62,.22); }
+    .field { padding: 12px 18px; border-right: 0; border-top: 1px solid rgba(140,109,62,.22); }
+    .field::after { right: 22px; }
+    .field select { font-size: 18px; }
+    .search__submit { height: 54px; }
+
+    .next { padding: 64px var(--gutter) 72px; }
+    .next__inner { grid-template-columns: 1fr; gap: 32px; }
+    .next__aside { grid-template-columns: 110px 1fr; gap: 18px; }
+    .next__aside img { width: 110px; height: 140px; }
+    .proof { margin-top: 44px; }
+    .proof li { padding: 0 12px; }
+    .proof__num { font-size: 30px; }
+    .proof__label { font-size: 12.5px; }
+  }
+
+  @media (max-width: 360px) {
+    .brand__tag { display: none; }
+  }
+
+  @media (max-height: 760px) and (min-width: 961px) {
+    .headline { font-size: clamp(44px, 5.6vw, 84px); }
+    .lead { margin-top: 20px; }
+    .ctas { margin-top: 24px; }
+    .hero__body { padding-bottom: calc(var(--search-h) / 2 + 80px); }
+    .upnext { display: none; }
+    .scroll-cue__line { height: 30px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001ms !important;
+      animation-delay: 0s !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+      transition-delay: 0s !important;
+    }
+    .headline .line > span { transform: none; }
+    .slide img { transform: none !important; }
+    .scroll-cue__line::after { transform: translateY(60%); }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<!-- ======================= INTRO (une fois par session) ======================= -->
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="intro__mark">
+    <div class="intro__glow"></div>
+    <img class="intro__medal" src="assets/medaillon.png" alt="" width="512" height="512">
+    <svg class="intro__ring" viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="48"/><circle class="bar" id="introBar" cx="50" cy="50" r="48"/></svg>
+  </div>
+  <p class="intro__line">Immobilier de prestige · Kinshasa</p>
+  <button class="intro__skip" id="introSkip" type="button" tabindex="-1">Passer</button>
+</div>
+
+<!-- ======================= NAVBAR ======================= -->
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="brand" href="#" aria-label="G Business Immo — accueil">
+      <span class="brand__medal"><img src="assets/logo-monogramme.jpg" alt="" width="46" height="46"></span>
+      <span class="brand__text">
+        <span class="brand__name"><b>G</b> BUSINESS IMMO</span>
+        <span class="brand__tag">Immobilier de Prestige</span>
+      </span>
+    </a>
+
+    <nav aria-label="Navigation principale">
+      <ul class="nav__links">
+        <li><a href="#" aria-current="page">Accueil</a></li>
+        <li><a href="#">Services</a></li>
+        <li><a href="#">Offres</a></li>
+        <li><a href="#">À propos</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+
+    <div class="nav__actions">
+      <a class="nav__admin nav__admin--desk" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        Espace Admin
+      </a>
+      <a class="btn-wa" href="https://wa.me/243810000000" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2a9.9 9.9 0 0 0-8.5 14.98L2 22l5.17-1.5A9.9 9.9 0 1 0 12.04 2Zm0 18.1a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.07.9.9-2.99-.2-.31a8.2 8.2 0 1 1 6.850 3.73Zm4.5-6.14c-.25-.12-1.46-.72-1.69-.8-.23-.08-.39-.12-.55.12-.16.25-.63.8-.78.97-.14.16-.29.18-.53.06a6.7 6.7 0 0 1-3.34-2.92c-.25-.43.25-.4.72-1.34.08-.16.04-.3-.02-.43-.06-.12-.55-1.33-.76-1.82-.2-.48-.4-.41-.55-.42h-.47a.9.9 0 0 0-.65.3 2.74 2.74 0 0 0-.85 2.030c0 1.2.87 2.36 1 2.52.12.16 1.71 2.61 4.15 3.66 1.54.67 2.14.72 2.91.61.47-.07 1.46-.6 1.66-1.17.2-.58.2-1.07.14-1.17-.06-.1-.22-.16-.47-.28Z"/></svg>
+        WhatsApp
+      </a>
+      <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Ouvrir le menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Menu mobile -->
+<div class="menu" id="menu" aria-hidden="true">
+  <nav aria-label="Navigation mobile">
+    <ul>
+      <li><a href="#" aria-current="page">Accueil</a></li>
+      <li><a href="#">Services</a></li>
+      <li><a href="#">Offres</a></li>
+      <li><a href="#">À propos</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+  </nav>
+  <div class="menu__foot">
+    <a class="btn-wa" href="https://wa.me/243810000000" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2a9.9 9.9 0 0 0-8.5 14.98L2 22l5.17-1.5A9.9 9.9 0 1 0 12.04 2Zm0 18.1a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.07.9.9-2.99-.2-.31a8.2 8.2 0 1 1 6.85 3.73Zm4.5-6.14c-.25-.12-1.46-.72-1.69-.8-.23-.08-.39-.12-.55.12-.16.25-.63.8-.78.97-.14.16-.29.18-.53.06a6.7 6.7 0 0 1-3.34-2.92c-.25-.43.25-.4.72-1.34.08-.16.04-.3-.02-.43-.06-.12-.55-1.33-.76-1.82-.2-.48-.4-.41-.55-.42h-.47a.9.9 0 0 0-.65.3 2.74 2.74 0 0 0-.85 2.03c0 1.2.87 2.36 1 2.52.12.16 1.71 2.61 4.15 3.66 1.54.67 2.14.72 2.91.61.47-.07 1.46-.6 1.66-1.17.2-.58.2-1.07.14-1.17-.06-.1-.22-.16-.47-.28Z"/></svg>
+      Écrire sur WhatsApp
+    </a>
+    <a class="nav__admin" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      Espace Admin
+    </a>
+    <p class="menu__addr">+243 810 000 000 · Gombe, Kinshasa</p>
+  </div>
+</div>
+
+<main id="contenu">
+  <!-- ======================= HERO ======================= -->
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <!-- PLACEHOLDER : les 4 biens ci-dessous (noms, surfaces, statuts) sont inventés pour la maquette.
+         En production, ils viendront des offres publiées via l'API. -->
+    <div class="hero__media" aria-hidden="true">
+      <figure class="slide is-active" style="--pos: 42% 40%; --origin: 38% 55%; --kb-from: scale(1.1); --kb-to: scale(1);">
+        <picture>
+          <source media="(max-width: 720px)" srcset="assets/hero-tour-piscines-960.jpg">
+          <img src="assets/hero-tour-piscines.jpg" alt="" width="1920" height="1440" fetchpriority="high" id="firstImg">
+        </picture>
+      </figure>
+      <figure class="slide" style="--pos: 50% 40%; --origin: 30% 40%; --kb-from: scale(1.02) translate(1.5%, 0); --kb-to: scale(1.1) translate(-1.5%, -1%);">
+        <picture>
+          <source media="(max-width: 720px)" data-srcset="assets/residence-courbe-960.jpg">
+          <img data-src="assets/residence-courbe.jpg" alt="" width="1920" height="1440" decoding="async">
+        </picture>
+      </figure>
+      <figure class="slide" style="--pos: 40% 55%; --origin: 60% 60%; --kb-from: scale(1.12); --kb-to: scale(1.01);">
+        <picture>
+          <source media="(max-width: 720px)" data-srcset="assets/salon-signature-960.jpg">
+          <img data-src="assets/salon-signature.jpg" alt="" width="1920" height="1440" decoding="async">
+        </picture>
+      </figure>
+      <figure class="slide" style="--pos: 35% 50%; --origin: 70% 45%; --kb-from: scale(1.04) translate(-1.5%, 0); --kb-to: scale(1.12) translate(1%, 0);">
+        <picture>
+          <source media="(max-width: 720px)" data-srcset="assets/penthouse-vue-960.jpg">
+          <img data-src="assets/penthouse-vue.jpg" alt="" width="1920" height="1440" decoding="async">
+        </picture>
+      </figure>
+    </div>
+    <div class="hero__veil" aria-hidden="true"></div>
+    <div class="hero__grain" aria-hidden="true"></div>
+
+    <div class="hero__body">
+      <div class="hero__copy">
+        <p class="overline enter d1">Kinshasa <span>— Gombe · Ngaliema · Limete</span></p>
+        <h1 class="headline" id="hero-title">
+          <span class="line"><span>L'adresse</span></span>
+          <span class="line"><span class="indent">d'exception</span></span>
+          <span class="line"><span><em>à Kinshasa.</em></span></span>
+        </h1>
+        <p class="lead enter d2">Appartements, villas et espaces commerciaux de prestige, sélectionnés avec la plus grande discrétion pour les acquéreurs, investisseurs de la diaspora et entreprises.</p>
+        <div class="ctas enter d3">
+          <a class="btn-primary" href="#">
+            Découvrir nos offres
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn-text" href="#">Estimer mon bien</a>
+        </div>
+      </div>
+
+      <!-- La vitrine : le bien actuellement à l'écran -->
+      <aside class="vitrine enter d4" id="vitrine" aria-roledescription="carrousel" aria-label="Biens à la une">
+        <div class="vitrine__copies" aria-live="polite">
+          <article class="vcopy is-active" aria-roledescription="diapositive" aria-label="1 sur 4">
+            <p class="vcopy__status"><i></i>À vendre · Gombe</p>
+            <h2 class="vcopy__title">Les Jardins du Fleuve</h2>
+            <ul class="vcopy__facts"><li>245 m²</li><li>4 chambres</li><li>Vue sur le fleuve</li></ul>
+            <a class="vcopy__link" href="#">Voir ce bien <svg viewBox="0 0 18 10" fill="none" stroke="currentColor" aria-hidden="true"><path d="M0 5h17M13 1l4 4-4 4"/></svg></a>
+          </article>
+          <article class="vcopy" aria-roledescription="diapositive" aria-label="2 sur 4" aria-hidden="true">
+            <p class="vcopy__status"><i></i>À louer · Ngaliema</p>
+            <h2 class="vcopy__title">Résidence L'Arc</h2>
+            <ul class="vcopy__facts"><li>180 m²</li><li>3 chambres</li><li>Résidence sécurisée</li></ul>
+            <a class="vcopy__link" href="#" tabindex="-1">Voir ce bien <svg viewBox="0 0 18 10" fill="none" stroke="currentColor" aria-hidden="true"><path d="M0 5h17M13 1l4 4-4 4"/></svg></a>
+          </article>
+          <article class="vcopy" aria-roledescription="diapositive" aria-label="3 sur 4" aria-hidden="true">
+            <p class="vcopy__status"><i></i>À vendre · Gombe</p>
+            <h2 class="vcopy__title">Appartement Signature</h2>
+            <ul class="vcopy__facts"><li>210 m²</li><li>3 chambres</li><li>Meublé</li></ul>
+            <a class="vcopy__link" href="#" tabindex="-1">Voir ce bien <svg viewBox="0 0 18 10" fill="none" stroke="currentColor" aria-hidden="true"><path d="M0 5h17M13 1l4 4-4 4"/></svg></a>
+          </article>
+          <article class="vcopy" aria-roledescription="diapositive" aria-label="4 sur 4" aria-hidden="true">
+            <p class="vcopy__status"><i></i>À vendre · Gombe</p>
+            <h2 class="vcopy__title">Penthouse Panorama</h2>
+            <ul class="vcopy__facts"><li>380 m²</li><li>5 chambres</li><li>Terrasse</li></ul>
+            <a class="vcopy__link" href="#" tabindex="-1">Voir ce bien <svg viewBox="0 0 18 10" fill="none" stroke="currentColor" aria-hidden="true"><path d="M0 5h17M13 1l4 4-4 4"/></svg></a>
+          </article>
+        </div>
+
+        <div class="vitrine__controls">
+          <div class="counter" aria-hidden="true"><span class="counter__cur" id="cur">01</span><span class="counter__tot">/ 04</span></div>
+          <div class="segments" id="segments">
+            <button class="seg" type="button" aria-label="Afficher le bien 1"><i></i></button>
+            <button class="seg" type="button" aria-label="Afficher le bien 2"><i></i></button>
+            <button class="seg" type="button" aria-label="Afficher le bien 3"><i></i></button>
+            <button class="seg" type="button" aria-label="Afficher le bien 4"><i></i></button>
+          </div>
+          <div class="ctrl-group">
+            <button class="ctrl ctrl--play" id="play" type="button" aria-label="Mettre le diaporama en pause"></button>
+            <button class="ctrl ctrl--prev" id="prev" type="button" aria-label="Bien précédent">
+              <svg viewBox="0 0 18 10" fill="none" stroke="currentColor" aria-hidden="true"><path d="M18 5H1M5 1 1 5l4 4"/></svg>
+            </button>
+            <button class="ctrl ctrl--next" id="next" type="button" aria-label="Bien suivant">
+              <svg viewBox="0 0 18 10" fill="none" stroke="currentColor" aria-hidden="true"><path d="M0 5h17M13 1l4 4-4 4"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button class="upnext" id="upnext" type="button">
+          <img class="upnext__img" id="upnextImg" src="assets/thumb-residence-courbe.jpg" alt="" width="360" height="270">
+          <span class="upnext__txt"><span class="upnext__k">Ensuite</span><span class="upnext__t" id="upnextTitle">Résidence L'Arc</span></span>
+        </button>
+      </aside>
+    </div>
+
+    <a class="scroll-cue" href="#selection" aria-label="Défiler vers la sélection">
+      <span>Défiler</span>
+      <span class="scroll-cue__line" aria-hidden="true"></span>
+    </a>
+
+    <!-- Barre de recherche -->
+    <div class="search" id="search">
+      <button class="search__toggle" id="search-toggle" type="button" aria-expanded="false" aria-controls="search-form">
+        <span class="ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+          Rechercher un bien
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <form class="search__panel" id="search-form" role="search" aria-label="Rechercher un bien" onsubmit="return false;">
+        <fieldset class="search__mode">
+          <legend class="sr-only">Transaction</legend>
+          <label><input type="radio" name="mode" value="achat" checked><span class="dot"></span><span class="txt">Acheter</span></label>
+          <label><input type="radio" name="mode" value="location"><span class="dot"></span><span class="txt">Louer</span></label>
+        </fieldset>
+        <div class="field">
+          <label for="f-type">Type de bien</label>
+          <select id="f-type">
+            <option>Tous les biens</option>
+            <option>Appartement</option>
+            <option>Villa</option>
+            <option>Penthouse</option>
+            <option>Espace commercial</option>
+            <option>Terrain</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-commune">Commune</label>
+          <select id="f-commune">
+            <option>Toutes les communes</option>
+            <option>Gombe</option>
+            <option>Ngaliema</option>
+            <option>Limete</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-budget">Budget</label>
+          <select id="f-budget">
+            <option>Tous budgets</option>
+            <option>Moins de 250 000 $</option>
+            <option>250 000 – 500 000 $</option>
+            <option>500 000 – 1 M $</option>
+            <option>Plus de 1 M $</option>
+          </select>
+        </div>
+        <button class="search__submit" type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+          Rechercher
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ======================= SECTION SUIVANTE (aperçu) ======================= -->
+  <section class="next" id="selection" aria-labelledby="sel-title">
+    <div class="next__inner">
+      <div>
+        <p class="kicker">Sélection du moment</p>
+        <h2 id="sel-title">Des biens d'exception, choisis <em>avec discrétion.</em></h2>
+      </div>
+      <div class="next__aside">
+        <img src="assets/residence-courbe-960.jpg" alt="Résidence contemporaine aux façades crème, entourée de palmiers" width="960" height="720" loading="lazy">
+        <div>
+          <p>Résidences sécurisées, vues sur le fleuve, finitions haut de gamme : découvrez les adresses que nous accompagnons en ce moment.</p>
+          <a href="#">Voir la sélection</a>
+        </div>
+      </div>
+    </div>
+    <!-- PLACEHOLDER : chiffres à confirmer par G Business Immo avant la mise en ligne. -->
+    <ul class="proof" aria-label="G Business Immo en chiffres">
+      <li><span class="proof__num">150<sup>+</sup></span><span class="proof__label">biens vendus ou loués</span></li>
+      <li><span class="proof__num">12</span><span class="proof__label">ans à Kinshasa</span></li>
+      <li><span class="proof__num">98<sup>%</sup></span><span class="proof__label">de clients satisfaits</span></li>
+    </ul>
+  </section>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (id) => document.getElementById(id);
+
+  /* ── Intro : l'anneau suit le chargement réel de la 1re photo ── */
+  let intro = $('intro');
+  let readyDone = false;
+  const ready = () => {
+    if (readyDone) return; readyDone = true;
+    root.classList.add('ready');
+    startSlideshow();
+  };
+  const liftIntro = () => {
+    if (!intro || intro.classList.contains('is-lifting')) return;
+    try { sessionStorage.setItem('gbi-intro', '1'); } catch (e) {}
+    intro.classList.add('is-lifting');
+    setTimeout(ready, 140);
+    setTimeout(() => { intro?.remove(); intro = null; }, 800);
+  };
+
+  const firstImg = $('firstImg');
+  const imgLoaded = new Promise((res) => {
+    if (firstImg.complete && firstImg.naturalWidth) return res();
+    firstImg.addEventListener('load', res, { once: true });
+    firstImg.addEventListener('error', res, { once: true });
+  });
+
+  if (root.classList.contains('has-intro')) {
+    const bar = $('introBar');
+    const t0 = performance.now();
+    const MIN = 1300, MAX = 4000;          // jamais moins de 1,3 s (le temps de l'animation), jamais plus de 4 s
+    let loaded = false;
+    imgLoaded.then(() => { loaded = true; });
+    const step = (now) => {
+      if (!intro) return;
+      const t = now - t0;
+      // progression : avance seule jusqu'à 85 %, se complète quand la photo est là
+      const auto = Math.min(t / MIN, 1) * .85;
+      const p = loaded ? Math.min(1, Math.max(auto, t / MIN)) : auto;
+      bar.style.setProperty('--p', p.toFixed(3));
+      if ((loaded && t >= MIN) || t >= MAX) { bar.style.setProperty('--p', 1); setTimeout(liftIntro, 380); return; }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    $('introSkip').addEventListener('click', liftIntro);
+    addEventListener('keydown', function onKey() { liftIntro(); removeEventListener('keydown', onKey); });
+  } else {
+    intro.remove(); intro = null;
+    requestAnimationFrame(() => requestAnimationFrame(ready));
+  }
+
+  /* ── Navbar : transparente → verre sombre au défilement ── */
+  const nav = $('nav');
+  const onScroll = () => nav.classList.toggle('is-solid', scrollY > 48);
+  onScroll();
+  addEventListener('scroll', onScroll, { passive: true });
+
+  /* ── Menu mobile ── */
+  const burger = $('burger'), menu = $('menu');
+  let menuOpen = false;
+  menu.inert = true;
+  const setMenu = (open) => {
+    menuOpen = open;
+    burger.setAttribute('aria-expanded', String(open));
+    burger.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+    menu.classList.toggle('is-open', open);
+    menu.setAttribute('aria-hidden', String(!open));
+    menu.inert = !open;
+    nav.classList.toggle('menu-active', open);
+    document.body.classList.toggle('menu-open', open);
+    if (open) setTimeout(() => menu.querySelector('a').focus({ preventScroll: true }), 250);
+  };
+  burger.addEventListener('click', () => setMenu(!menuOpen));
+  menu.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menuOpen) { setMenu(false); burger.focus(); }
+  });
+  matchMedia('(min-width: 961px)').addEventListener('change', (m) => { if (m.matches) setMenu(false); });
+
+  /* ── Recherche mobile ── */
+  const search = $('search'), searchToggle = $('search-toggle');
+  searchToggle.addEventListener('click', () => {
+    const open = searchToggle.getAttribute('aria-expanded') !== 'true';
+    searchToggle.setAttribute('aria-expanded', String(open));
+    search.classList.toggle('is-open', open);
+  });
+
+  /* ── Diaporama ── */
+  const data = [
+    { title: 'Les Jardins du Fleuve', thumb: 'assets/thumb-tour-fleuve.jpg' },
+    { title: "Résidence L'Arc",       thumb: 'assets/thumb-residence-courbe.jpg' },
+    { title: 'Appartement Signature', thumb: 'assets/thumb-salon-signature.jpg' },
+    { title: 'Penthouse Panorama',    thumb: 'assets/thumb-penthouse-vue.jpg' },
+  ];
+  const slides = [...document.querySelectorAll('.slide')];
+  const copies = [...document.querySelectorAll('.vcopy')];
+  const segs = [...document.querySelectorAll('.seg')];
+  const N = slides.length;
+  const DUR = parseFloat(getComputedStyle(root).getPropertyValue('--slide-dur')) * 1000 || 6500;
+  const hero = $('hero'), vitrine = $('vitrine'), cur = $('cur'), playBtn = $('play');
+  let i = 0, elapsed = 0, last = 0, running = false, busy = false;
+  let userPaused = reduce, hoverVitrine = false, focusIn = false, offscreen = false;
+
+  // Charge la photo d'un bien à la demande (et sa version mobile)
+  const loaders = new Map();
+  const ensure = (n) => {
+    if (loaders.has(n)) return loaders.get(n);
+    const img = slides[n].querySelector('img');
+    const src = slides[n].querySelector('source');
+    const p = new Promise((res) => {
+      if (!img.dataset.src) return res();
+      if (src?.dataset.srcset) { src.srcset = src.dataset.srcset; src.removeAttribute('data-srcset'); }
+      img.addEventListener('load', res, { once: true });
+      img.addEventListener('error', res, { once: true });
+      img.src = img.dataset.src; img.removeAttribute('data-src');
+    }).then(() => img.decode?.().catch(() => {}));
+    loaders.set(n, p);
+    return p;
+  };
+
+  const paintSegments = (progress) => {
+    segs.forEach((s, k) => {
+      s.classList.toggle('is-done', k < i);
+      s.firstElementChild.style.transform = k === i ? `scaleX(${progress})` : '';
+    });
+  };
+
+  const go = async (n) => {
+    n = (n + N) % N;
+    if (n === i || busy) return;
+    busy = true;
+    await ensure(n);
+    const old = i; i = n; elapsed = 0;
+    slides.forEach((s) => s.classList.remove('is-prev'));
+    slides[old].classList.remove('is-active'); slides[old].classList.add('is-prev');
+    slides[i].classList.add('is-active');
+    setTimeout(() => { if (old !== i) slides[old].classList.remove('is-prev'); }, 1450);
+
+    copies.forEach((c, k) => {
+      const on = k === i;
+      c.classList.toggle('is-active', on);
+      c.setAttribute('aria-hidden', String(!on));
+      c.querySelectorAll('a').forEach((a) => on ? a.removeAttribute('tabindex') : a.setAttribute('tabindex', '-1'));
+    });
+    cur.textContent = String(i + 1).padStart(2, '0');
+    cur.classList.remove('is-flip'); void cur.offsetWidth; cur.classList.add('is-flip');
+    const nx = data[(i + 1) % N];
+    $('upnextTitle').textContent = nx.title;
+    $('upnextImg').src = nx.thumb;
+    paintSegments(0);
+    ensure((i + 1) % N);           // précharge le suivant
+    busy = false;
+  };
+
+  const tick = (t) => {
+    const dt = last ? Math.min(t - last, 100) : 0; last = t;
+    const paused = userPaused || hoverVitrine || focusIn || offscreen || menuOpen || document.hidden;
+    if (!paused) {
+      elapsed += dt;
+      if (elapsed >= DUR) go(i + 1);
+    }
+    paintSegments(Math.min(elapsed / DUR, 1));
+    requestAnimationFrame(tick);
+  };
+  function startSlideshow() {
+    if (running) return; running = true;
+    ensure(1);
+    requestAnimationFrame(tick);
+  }
+
+  $('next').addEventListener('click', () => go(i + 1));
+  $('prev').addEventListener('click', () => go(i - 1));
+  $('upnext').addEventListener('click', () => go(i + 1));
+  segs.forEach((s, k) => s.addEventListener('click', () => go(k)));
+
+  const syncPlay = () => {
+    playBtn.setAttribute('aria-label', userPaused ? 'Relancer le diaporama' : 'Mettre le diaporama en pause');
+    playBtn.innerHTML = userPaused
+      ? '<svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M2.5 1v10l8-5z"/></svg>'
+      : '<svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="2" y="1" width="2.4" height="10"/><rect x="7.6" y="1" width="2.4" height="10"/></svg>';
+  };
+  playBtn.addEventListener('click', () => { userPaused = !userPaused; syncPlay(); });
+  syncPlay();
+
+  // Pause uniquement quand on lit la vitrine (pas sur tout le hero), ou quand le hero n'est plus visible
+  vitrine.addEventListener('mouseenter', () => { hoverVitrine = true; });
+  vitrine.addEventListener('mouseleave', () => { hoverVitrine = false; });
+  vitrine.addEventListener('focusin', () => { focusIn = true; });
+  vitrine.addEventListener('focusout', () => { focusIn = false; });
+  new IntersectionObserver(([e]) => { offscreen = !e.isIntersecting; }, { threshold: .25 }).observe(hero);
+
+  // Glissement (mobile)
+  let sx = 0, sy = 0;
+  hero.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  hero.addEventListener('touchend', (e) => {
+    if (e.target.closest('.search')) return;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) go(dx < 0 ? i + 1 : i - 1);
+  }, { passive: true });
+
+  // Clavier : flèches quand le hero est à l'écran
+  addEventListener('keydown', (e) => {
+    if (menuOpen || intro || offscreen) return;
+    if (/input|textarea|select/i.test(e.target.tagName)) return;
+    if (e.key === 'ArrowRight') go(i + 1);
+    if (e.key === 'ArrowLeft') go(i - 1);
+  });
+})();
+</script>
+</body>
+</html>

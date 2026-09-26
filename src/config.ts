@@ -15,3 +15,32 @@
 import logoUrl from './assets/images/logo.svg';
 export const LOGO_URL: string = logoUrl;
 
+/**
+ * Coordonnées officielles de l'agence.
+ * 👉 Un seul endroit à modifier : la page Contact et le pied de page lisent ces valeurs.
+ */
+export const CONTACT = {
+  phoneDisplay: '+243 899 350 134',
+  phoneHref: 'tel:+243899350134',
+  whatsappDisplay: '+243 899 350 134',
+  whatsappHref: 'https://wa.me/243899350134',
+  email: 'contact@gbusinessimmo.cd',
+  addressLine1: '75A Ngongo Lutete',
+  addressLine2: 'Gombe, Kinshasa, RDC',
+  addressFull: '75A Ngongo Lutete, Gombe, Kinshasa, République démocratique du Congo',
+  mapsHref:
+    'https://www.google.com/maps/search/?api=1&query=' +
+    encodeURIComponent('75A Ngongo Lutete, Gombe, Kinshasa, Democratic Republic of the Congo'),
+  hours: [
+    { days: 'Lun – Ven', time: '8h00 – 17h30' },
+    { days: 'Sam', time: '9h00 – 13h00' },
+  ],
+} as const;
+
+/** Réseaux sociaux officiels. */
+export const SOCIAL_LINKS = {
+  facebook: 'https://www.facebook.com/gbusinessimmo/?locale=fr_FR',
+  instagram: 'https://www.instagram.com/g_business_immo/',
+  tiktok: 'https://www.tiktok.com/@gbusinessimmo',
+} as const;
+

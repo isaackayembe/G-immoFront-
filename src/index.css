@@ -16,6 +16,26 @@
   }
 }
 
+/* Apparition au défilement (posé et retiré automatiquement par src/scrollReveal.ts) */
+[data-rv] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) var(--rv-delay, 0ms),
+    transform 1s cubic-bezier(0.16, 1, 0.3, 1) var(--rv-delay, 0ms);
+}
+[data-rv='in'] {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-rv] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 .minimal-input {
   border: none;
   border-bottom: 1px solid #0D0D0D;

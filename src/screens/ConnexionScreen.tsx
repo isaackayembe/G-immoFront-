@@ -117,7 +117,7 @@ export const ConnexionScreen: React.FC<ConnexionScreenProps> = ({ onNavigate }) 
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="minimal-input text-[16px] text-[#0D0D0D] w-full"
-                placeholder="votre.email@gbusinessimmo.com"
+                placeholder="votre.email@gbusinessimmo.cd"
               />
             </div>
 
