@@ -4,9 +4,9 @@
  */
 import { ScreenId } from './types';
 
-export type DashboardTab = 'offres' | 'brouillons' | 'analytics' | 'equipe' | 'parametres';
+export type DashboardTab = 'offres' | 'brouillons' | 'analytics';
 
-export const DASHBOARD_TABS: DashboardTab[] = ['offres', 'brouillons', 'analytics', 'equipe', 'parametres'];
+export const DASHBOARD_TABS: DashboardTab[] = ['offres', 'brouillons', 'analytics'];
 
 export const SCREEN_PATHS: Record<ScreenId, string> = {
   accueil: '/',

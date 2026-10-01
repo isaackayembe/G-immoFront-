@@ -23,6 +23,7 @@ import { DashboardAdminScreen } from './screens/DashboardAdminScreen';
 import { AjouterOffreScreen } from './screens/AjouterOffreScreen';
 import { ConnexionScreen } from './screens/ConnexionScreen';
 import { NotFoundScreen } from './screens/NotFoundScreen';
+import { WhatsAppButton } from './components/WhatsAppButton';
 
 /**
  * Fusionne les données du backend avec l'état local.
@@ -132,6 +133,8 @@ export default function App() {
   const navigate = useNavigate();
   const navigationType = useNavigationType();
   const [properties, setProperties] = useState<Property[]>([]);
+  // Faux tant que le 1er chargement n'est pas terminé (réussi ou non) : les pages affichent un squelette
+  const [propertiesLoaded, setPropertiesLoaded] = useState(false);
 
   // 🔒 Tracking des statuts modifiés localement pour éviter qu'un GET ne les écrase
   const optimisticStatuses = React.useRef<Map<string, PropertyStatus>>(new Map());
@@ -147,6 +150,8 @@ export default function App() {
         }
       } catch (err) {
         console.warn('Backend API hors-ligne ou non configuré. Les propriétés seront chargées dès la connexion.', err);
+      } finally {
+        if (isMounted) setPropertiesLoaded(true);
       }
     };
     fetchInitialData();
@@ -266,10 +271,10 @@ export default function App() {
           className="w-full min-h-screen"
         >
           <Routes location={location}>
-            <Route path="/" element={<AccueilScreen onNavigate={handleNavigate} properties={properties} />} />
+            <Route path="/" element={<AccueilScreen onNavigate={handleNavigate} properties={properties} loading={!propertiesLoaded} />} />
             <Route path="/services" element={<ServicesScreen onNavigate={handleNavigate} />} />
             <Route path="/a-propos" element={<AboutScreen onNavigate={handleNavigate} />} />
-            <Route path="/offres" element={<OffresScreen onNavigate={handleNavigate} properties={properties} />} />
+            <Route path="/offres" element={<OffresScreen onNavigate={handleNavigate} properties={properties} loading={!propertiesLoaded} />} />
             <Route path="/offres/:id" element={<PropertyDetailScreen onNavigate={handleNavigate} properties={properties} />} />
             <Route path="/contact" element={<ContactScreen onNavigate={handleNavigate} />} />
             <Route path="/connexion" element={<ConnexionScreen onNavigate={handleNavigate} />} />
@@ -326,6 +331,7 @@ export default function App() {
           </Routes>
         </motion.div>
       </AnimatePresence>
+      <WhatsAppButton properties={properties} />
     </div>
   );
 }

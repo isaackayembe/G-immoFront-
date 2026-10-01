@@ -48,6 +48,13 @@ const FALLBACK_SLIDES: Slide[] = [
   { key: 'f4', src: penthouseVue, srcMobile: penthouseVue960, title: 'Nos biens à Kinshasa', facts: [] },
 ];
 
+/** Biens montrés dans le hero : publiés, avec photo, non vendus de préférence. L'accueil s'en sert pour ne pas les répéter. */
+export function pickHeroProperties(properties: Property[]): Property[] {
+  const withImage = properties.filter((p) => p.status !== 'Brouillon' && p.imageUrl);
+  const available = withImage.filter((p) => p.status !== 'Vendu');
+  return (available.length ? available : withImage).slice(0, MAX_SLIDES);
+}
+
 const toSlide = (p: Property): Slide => ({
   key: p.id,
   src: p.imageUrl,
@@ -107,9 +114,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate, properties }) =>
 
   // ── Biens affichés : les offres publiées avec photo, sinon les photos de secours
   const slides = useMemo<Slide[]>(() => {
-    const withImage = properties.filter((p) => p.status !== 'Brouillon' && p.imageUrl);
-    const available = withImage.filter((p) => p.status !== 'Vendu');
-    const picked = (available.length ? available : withImage).slice(0, MAX_SLIDES);
+    const picked = pickHeroProperties(properties);
     return picked.length ? picked.map(toSlide) : FALLBACK_SLIDES;
   }, [properties]);
   const slidesKey = slides.map((s) => s.key).join('|');

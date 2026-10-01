@@ -12,7 +12,7 @@
  * Formats supportés : .svg · .png · .jpg · .webp
  * Exemple PNG : import logoUrl from './assets/images/logo.png';
  */
-import logoUrl from './assets/images/logo.svg';
+import logoUrl from './assets/images/G-Business_Immo_Icon_256x256.png';
 export const LOGO_URL: string = logoUrl;
 
 /**

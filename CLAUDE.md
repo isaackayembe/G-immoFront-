@@ -2,11 +2,12 @@
 
 
 
+
 <!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (Cloude Code ToolBox)
 
-_Last synced: 2026-09-25T19:22:55.850Z._
+_Last synced: 2026-09-29T16:43:39.233Z._
 
 - **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).
@@ -21,15 +22,33 @@ _No active workspace servers in mcp.json._
 
 #### User MCP
 
-- `C:\Users\isaac.kayembe\.claude.json` — _no servers defined_
+- `C:\Users\isaac.kayembe\.claude.json` — _servers defined_
 
-_No active user-scoped servers in mcp.json._
+| Server id | Kind | Detail |
+|-----------|------|--------|
+| 21st | http | https://21st.dev/api/mcp |
 
 #### Project skills
 
 _None found (or no workspace open)._
 
 #### User skills
+
+- **anthropic-frontend-design** — `C:\Users\isaac.kayembe\.claude\skills\anthropic-frontend-design` — Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.
+
+- **banner-design** — `C:\Users\isaac.kayembe\.claude\skills\banner-design` — Design banners for social media, ads, website heroes, creative assets, and print. Multiple art direction options with optional generated or supplied visuals. Actions: design, create, generate banner. Platforms: Facebook,
+
+- **brand** — `C:\Users\isaac.kayembe\.claude\skills\brand` — Brand voice, visual identity, messaging frameworks, asset management, brand consistency. Activate for branded content, tone of voice, marketing assets, brand compliance, style guides.
+
+- **design** — `C:\Users\isaac.kayembe\.claude\skills\design` — Comprehensive design skill: brand identity, design tokens, UI styling, logo generation (55 styles, Gemini, Atlas Cloud, or MuAPI AI), corporate identity program (50 deliverables, CIP mockups), HTML presentations (Chart.j
+
+- **design-system** — `C:\Users\isaac.kayembe\.claude\skills\design-system` — Token architecture, component specifications, and slide generation. Three-layer tokens (primitive→semantic→component), CSS variables, spacing/typography scales, component specs, strategic slide creation. Use for design t
+
+- **slides** — `C:\Users\isaac.kayembe\.claude\skills\slides` — Create strategic HTML presentations with Chart.js, design tokens, responsive layouts, copywriting formulas, and contextual slide strategies.
+
+- **ui-styling** — `C:\Users\isaac.kayembe\.claude\skills\ui-styling` — Create beautiful, accessible user interfaces with shadcn/ui components (built on Radix UI + Tailwind), Tailwind CSS utility-first styling, and canvas-based visual designs. Use when building user interfaces, implementing 
+
+- **ui-ux-pro-max** — `C:\Users\isaac.kayembe\.claude\skills\ui-ux-pro-max` — UI/UX design intelligence for web, mobile, and desktop. This skill should be used when designing, building, reviewing, or fixing interfaces, including pages, components, design systems, accessibility, interaction, respon
 
 - **agent-browser** — `C:\Users\isaac.kayembe\.agents\skills\agent-browser` — Browser automation CLI for AI agents. Use when the user needs to interact with websites, including navigating pages, filling forms, clicking buttons, taking screenshots, extracting data, testing web apps, or automating a
 

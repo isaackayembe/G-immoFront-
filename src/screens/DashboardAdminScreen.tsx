@@ -8,8 +8,6 @@ import { PropertyImageCarousel } from '../components/PropertyImageCarousel';
 import {
   LayoutDashboard,
   Plus,
-  Settings,
-  Users,
   BarChart3,
   LogOut,
   ArrowLeft,
@@ -318,29 +316,6 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
               <span>Analytics</span>
             </button>
 
-            <button
-              onClick={() => setActiveTab('equipe')}
-              className={`w-full flex items-center gap-3 px-4 py-3 font-sans text-[13px] transition-colors cursor-pointer ${
-                activeTab === 'equipe'
-                  ? 'bg-[#C5A059]/20 text-[#C5A059] border-l-2 border-[#C5A059]'
-                  : 'text-[#747878] hover:text-white hover:bg-[#1a1a1a]'
-              }`}
-            >
-              <Users size={18} />
-              <span>Équipe</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('parametres')}
-              className={`w-full flex items-center gap-3 px-4 py-3 font-sans text-[13px] transition-colors cursor-pointer ${
-                activeTab === 'parametres'
-                  ? 'bg-[#C5A059]/20 text-[#C5A059] border-l-2 border-[#C5A059]'
-                  : 'text-[#747878] hover:text-white hover:bg-[#1a1a1a]'
-              }`}
-            >
-              <Settings size={18} />
-              <span>Paramètres</span>
-            </button>
           </nav>
         </div>
 
@@ -378,16 +353,12 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                   {activeTab === 'offres' && 'Gestion des Offres'}
                   {activeTab === 'brouillons' && 'Offres en Brouillon'}
                   {activeTab === 'analytics' && 'Analytics & Performance'}
-                  {activeTab === 'equipe' && 'Gestion de l\'Équipe'}
-                  {activeTab === 'parametres' && 'Paramètres'}
                 </h1>
               </div>
               <p className="font-sans text-[12px] sm:text-[13px] text-[#747878] hidden sm:block">
                 {activeTab === 'offres' && 'Gérez le statut de vos biens immobiliers par sélection rapide.'}
                 {activeTab === 'brouillons' && 'Consultez vos annonces en préparation, vérifiez et publiez-les.'}
                 {activeTab === 'analytics' && 'Visualisez la valeur sous mandat et les indicateurs clés du portefeuille.'}
-                {activeTab === 'equipe' && 'Gérez les conseillers et administrateurs autorisés.'}
-                {activeTab === 'parametres' && 'Configuration de la plateforme et préférences.'}
               </p>
             </div>
 
@@ -863,30 +834,6 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
             </div>
           )}
 
-          {/* TAB 4: EQUIPE */}
-          {activeTab === 'equipe' && (
-            <div className="bg-white p-8 border border-[#8C6D3E]/20 shadow-sm space-y-4">
-              <h2 className="font-serif text-[24px] font-bold text-[#0D0D0D]">Équipe d'Administration</h2>
-              <p className="font-sans text-[14px] text-[#747878]">Membres autorisés à gérer le catalogue, créer des brouillons et publier les mandats.</p>
-              <div className="divide-y divide-[#f0eee9]">
-                <div className="py-3 flex justify-between items-center font-sans text-[14px]">
-                  <div>
-                    <span className="font-semibold text-[#0D0D0D]">Direction Générale</span>
-                    <span className="block text-[12px] text-[#747878]">admin@gbusinessimmo.com</span>
-                  </div>
-                  <span className="bg-[#C5A059]/20 text-[#8C6D3E] font-bold text-[11px] px-2.5 py-1 uppercase tracking-wider">Super Admin</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 5: PARAMETRES */}
-          {activeTab === 'parametres' && (
-            <div className="bg-white p-8 border border-[#8C6D3E]/20 shadow-sm space-y-4">
-              <h2 className="font-serif text-[24px] font-bold text-[#0D0D0D]">Paramètres de l'Espace Admin</h2>
-              <p className="font-sans text-[14px] text-[#747878]">Ajustez les notifications, les devises ($ USD) et les accès sécurisés.</p>
-            </div>
-          )}
         </main>
       </div>
 

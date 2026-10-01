@@ -1,39 +1,48 @@
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ScreenId, TransitionType, Property } from '../types';
 import { propertyPath } from '../routes';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+import { StatusBadge, CardSkeleton } from '../components/StatusBadge';
+import {
+  ALL,
+  BUDGET_OPTIONS,
+  OfferFilters,
+  TYPE_OPTIONS,
+  communeOptions,
+  filtersFromParams,
+  filtersToParams,
+  matchesFilters,
+} from '../offerFilters';
 import { Filter, MapPin, Maximize, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 
 interface OffresScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
   properties: Property[];
+  loading?: boolean;
 }
 
-export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properties }) => {
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [selectedLocation, setSelectedLocation] = useState<string>('all');
-  const [selectedBudget, setSelectedBudget] = useState<string>('all');
+export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properties, loading = false }) => {
+  // Les filtres vivent dans l'URL (?type=…&commune=…&budget=…) : la recherche de l'accueil arrive déjà filtrée
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filters = filtersFromParams(searchParams);
+  const { type: selectedType, commune: selectedLocation, budget: selectedBudget } = filters;
+  const setFilter = (key: keyof OfferFilters, value: string) =>
+    setSearchParams(filtersToParams({ ...filters, [key]: value }), { replace: true });
+  const resetFilters = () => setSearchParams(new URLSearchParams(), { replace: true });
+
+  const publicProperties = useMemo(() => properties.filter((prop) => prop.status !== 'Brouillon'), [properties]);
+  const communes = useMemo(() => communeOptions(publicProperties), [publicProperties]);
 
   // Filter properties (excluding drafts)
-  const filteredProperties = useMemo(() => {
-    return properties
-      .filter((prop) => prop.status !== 'Brouillon')
-      .filter((prop) => {
-        if (selectedType !== 'all' && prop.type !== selectedType) return false;
-        if (selectedLocation !== 'all' && !prop.commune.toLowerCase().includes(selectedLocation.toLowerCase())) {
-          return false;
-        }
-        if (selectedBudget !== 'all') {
-          const price = prop.numericPrice;
-          if (selectedBudget === '1-5' && (price < 1000000 || price > 5000000)) return false;
-          if (selectedBudget === '5-10' && (price < 5000000 || price > 10000000)) return false;
-          if (selectedBudget === '10+' && price < 10000000) return false;
-        }
-        return true;
-      });
-  }, [properties, selectedType, selectedLocation, selectedBudget]);
+  const filteredProperties = useMemo(
+    () =>
+      publicProperties.filter((prop) =>
+        matchesFilters(prop, { type: selectedType, commune: selectedLocation, budget: selectedBudget })
+      ),
+    [publicProperties, selectedType, selectedLocation, selectedBudget]
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F7F2] text-[#0D0D0D]">
@@ -54,58 +63,60 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
         <section className="w-full bg-white p-4 sm:p-6 md:p-8 border border-[#8C6D3E]/20 shadow-sm flex flex-col md:flex-row gap-5 sm:gap-6 items-stretch md:items-end">
           {/* Type Filter */}
           <div className="w-full md:w-1/4 flex flex-col gap-2">
-            <label className="font-sans text-[11px] font-bold uppercase tracking-widest text-[#0D0D0D]">
+            <label htmlFor="filtre-type" className="font-sans text-[11px] font-bold uppercase tracking-widest text-[#0D0D0D]">
               Type de bien
             </label>
             <div className="relative w-full border-b border-[#0D0D0D] pb-1 sm:pb-2">
               <select
+                id="filtre-type"
                 value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
+                onChange={(e) => setFilter('type', e.target.value)}
                 className="w-full bg-transparent outline-none font-sans text-[14px] sm:text-[15px] text-[#0D0D0D] cursor-pointer pr-8"
               >
-                <option value="all">Tous les types</option>
-                <option value="Résidentiel">Résidentiel Premium</option>
-                <option value="Commercial">Espace Commercial</option>
-                <option value="Villa">Villa de Luxe</option>
-                <option value="Hôtel Particulier">Hôtel Particulier</option>
+                <option value={ALL}>Tous les types</option>
+                {TYPE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
             </div>
           </div>
 
           {/* Location Filter */}
           <div className="w-full md:w-1/4 flex flex-col gap-2">
-            <label className="font-sans text-[11px] font-bold uppercase tracking-widest text-[#0D0D0D]">
+            <label htmlFor="filtre-commune" className="font-sans text-[11px] font-bold uppercase tracking-widest text-[#0D0D0D]">
               Localisation
             </label>
             <div className="relative w-full border-b border-[#0D0D0D] pb-1 sm:pb-2">
               <select
+                id="filtre-commune"
                 value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
+                onChange={(e) => setFilter('commune', e.target.value)}
                 className="w-full bg-transparent outline-none font-sans text-[14px] sm:text-[15px] text-[#0D0D0D] cursor-pointer pr-8"
               >
-                <option value="all">Toutes localisations</option>
-                <option value="Gombe">Gombe</option>
-                <option value="Ngaliema">Ngaliema</option>
-                <option value="Limete">Limete</option>
+                <option value={ALL}>Toutes localisations</option>
+                {communes.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
               </select>
             </div>
           </div>
 
           {/* Budget Filter */}
           <div className="w-full md:w-1/4 flex flex-col gap-2">
-            <label className="font-sans text-[11px] font-bold uppercase tracking-widest text-[#0D0D0D]">
+            <label htmlFor="filtre-budget" className="font-sans text-[11px] font-bold uppercase tracking-widest text-[#0D0D0D]">
               Budget
             </label>
             <div className="relative w-full border-b border-[#0D0D0D] pb-1 sm:pb-2">
               <select
+                id="filtre-budget"
                 value={selectedBudget}
-                onChange={(e) => setSelectedBudget(e.target.value)}
+                onChange={(e) => setFilter('budget', e.target.value)}
                 className="w-full bg-transparent outline-none font-sans text-[14px] sm:text-[15px] text-[#0D0D0D] cursor-pointer pr-8"
               >
-                <option value="all">Indifférent</option>
-                <option value="1-5">$ 1M - $ 5M</option>
-                <option value="5-10">$ 5M - $ 10M</option>
-                <option value="10+">&gt; $ 10M</option>
+                <option value={ALL}>Indifférent</option>
+                {BUDGET_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -113,11 +124,7 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
           {/* Reset/Filter Actions */}
           <div className="w-full md:w-1/4 flex justify-stretch md:justify-end gap-3 pt-2 md:pt-0">
             <button
-              onClick={() => {
-                setSelectedType('all');
-                setSelectedLocation('all');
-                setSelectedBudget('all');
-              }}
+              onClick={resetFilters}
               className="w-full md:w-auto bg-[#0D0D0D] text-[#F9F7F2] font-sans text-[11px] font-semibold uppercase tracking-widest px-6 py-3 hover:bg-[#8C6D3E] transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <Filter size={14} />
@@ -128,7 +135,9 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
 
         {/* Listing Grid */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {filteredProperties.length > 0 ? (
+          {loading && filteredProperties.length === 0 ? (
+            [0, 1, 2].map((k) => <CardSkeleton key={k} />)
+          ) : filteredProperties.length > 0 ? (
             filteredProperties.map((property) => (
               <Link
                 key={property.id}
@@ -147,19 +156,7 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out transform-gpu"
                   />
                   {/* Status Tag */}
-                  <div
-                    className={`absolute top-4 left-4 px-3 py-1 font-sans font-bold text-[10px] tracking-widest uppercase shadow-sm ${
-                      property.status === 'Urgent'
-                        ? 'bg-rose-600 text-white animate-pulse'
-                        : property.status === 'Disponible'
-                        ? 'bg-[#C5A059] text-[#0D0D0D]'
-                        : property.status === 'En cours'
-                        ? 'bg-[#F9F7F2] text-[#0D0D0D] border border-[#8C6D3E]/30'
-                        : 'bg-[#0D0D0D] text-[#F9F7F2]'
-                    }`}
-                  >
-                    {property.status}
-                  </div>
+                  <StatusBadge status={property.status} className="absolute top-4 left-4" />
 
                   {/* Multi-photo badge */}
                   {(property.images?.length ?? 1) > 1 && (
@@ -172,7 +169,7 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
 
                 <div className="flex flex-col gap-2 pt-2">
                   <div className="flex justify-between items-baseline gap-2">
-                    <h3 className="font-serif text-[22px] font-bold text-[#0D0D0D] group-hover:text-[#C5A059] transition-colors">
+                    <h3 className="font-serif text-[22px] font-bold text-[#0D0D0D] group-hover:text-[#8C6D3E] transition-colors">
                       {property.title}
                     </h3>
                     <span className="font-serif text-[20px] font-bold text-[#0D0D0D] shrink-0">
@@ -197,17 +194,13 @@ export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properti
               </Link>
             ))
           ) : (
-            <div className="col-span-1 md:col-span-3 text-center py-16 bg-white border border-[#8C6D3E]/20 shadow-sm">
+            <div className="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-16 bg-white border border-[#8C6D3E]/20 shadow-sm">
               <p className="font-serif text-[24px] text-[#0D0D0D] mb-2 font-bold">Aucun bien ne correspond à ces critères.</p>
               <p className="font-sans text-[15px] text-[#747878] mb-6">
                 Veuillez modifier vos filtres ou nous contacter directement pour un accompagnement sur-mesure.
               </p>
               <button
-                onClick={() => {
-                  setSelectedType('all');
-                  setSelectedLocation('all');
-                  setSelectedBudget('all');
-                }}
+                onClick={resetFilters}
                 className="bg-[#C5A059] text-[#0D0D0D] font-sans font-semibold text-xs tracking-widest uppercase px-6 py-3 cursor-pointer"
               >
                 Voir toutes les offres
