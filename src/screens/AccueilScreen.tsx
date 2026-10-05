@@ -6,7 +6,8 @@ import { Footer } from '../components/Footer';
 import { HomeHero, pickHeroProperties } from '../components/HomeHero';
 import { StatusBadge, CardSkeleton, roomsLabel } from '../components/StatusBadge';
 import { pathFor, propertyPath } from '../routes';
-import { ALL, BUDGET_OPTIONS, MAIN_COMMUNES, TYPE_OPTIONS, communeOptions, offersSearchPath } from '../offerFilters';
+import { QuartiersShowcase, Quartier } from '../components/QuartiersShowcase';
+import { ALL, BUDGET_OPTIONS, TYPE_OPTIONS, communeOptions, offersSearchPath } from '../offerFilters';
 import {
   ArrowRight,
   MapPin,
@@ -67,18 +68,20 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
     });
   };
 
-  // Quartiers : nombre de biens disponibles et photo d'un bien du quartier
-  const quartiers = useMemo(
+  // Quartiers : tous ceux où l'agence a des biens (+ les principaux), les plus fournis d'abord
+  const quartiers = useMemo<Quartier[]>(
     () =>
-      MAIN_COMMUNES.map((commune, i) => {
-        const inCommune = onSale.filter((p) => p.commune?.toLowerCase().includes(commune.toLowerCase()));
-        return {
-          commune,
-          count: inCommune.length,
-          image: inCommune.find((p) => p.imageUrl)?.imageUrl || COMMUNE_FALLBACK_IMAGES[i % COMMUNE_FALLBACK_IMAGES.length],
-        };
-      }),
-    [onSale]
+      communes
+        .map((commune, i) => {
+          const inCommune = onSale.filter((p) => p.commune?.toLowerCase().includes(commune.toLowerCase()));
+          return {
+            commune,
+            count: inCommune.length,
+            image: inCommune.find((p) => p.imageUrl)?.imageUrl || COMMUNE_FALLBACK_IMAGES[i % COMMUNE_FALLBACK_IMAGES.length],
+          };
+        })
+        .sort((a, b) => b.count - a.count),
+    [communes, onSale]
   );
 
   const featuredFacts = featuredProperty ? roomsLabel(featuredProperty) : '';
@@ -339,44 +342,7 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
       </section>
 
       {/* Nos Quartiers */}
-      <section className="pb-12 sm:pb-16 md:pb-24 px-4 sm:px-6 md:px-12 max-w-[1280px] mx-auto w-full">
-        <div className="mb-8 sm:mb-12">
-          <p className="font-sans text-[11px] font-semibold uppercase tracking-widest text-[#7A5C2E] mb-2">Kinshasa</p>
-          <h2 className="font-serif text-[26px] sm:text-[32px] md:text-[40px] text-[#0D0D0D] font-bold">Nos Quartiers</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
-          {quartiers.map((q) => (
-            <Link
-              key={q.commune}
-              to={offersSearchPath({ commune: q.commune })}
-              state={{ transition: 'push' }}
-              className="group relative block h-[220px] md:h-[300px] overflow-hidden bg-[#0D0D0D] border border-[#8C6D3E]/20"
-            >
-              <img
-                src={q.image}
-                alt=""
-                width={640}
-                height={480}
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-80 group-hover:scale-105 transition-[transform,opacity] duration-500 ease-out transform-gpu"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0D]/90 via-[#0D0D0D]/30 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-6 flex items-end justify-between gap-4">
-                <div>
-                  <h3 className="font-serif text-[26px] md:text-[30px] font-bold text-[#F9F7F2] leading-none">{q.commune}</h3>
-                  <p className="font-sans text-[12px] uppercase tracking-widest text-[#D9BD85] mt-2">
-                    {q.count > 0 ? `${q.count} ${q.count > 1 ? 'biens disponibles' : 'bien disponible'}` : 'Sur demande'}
-                  </p>
-                </div>
-                <span className="w-10 h-10 shrink-0 rounded-full border border-[#C5A059]/60 text-[#C5A059] flex items-center justify-center group-hover:bg-[#C5A059] group-hover:text-[#0D0D0D] transition-colors">
-                  <ArrowRight size={16} />
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <QuartiersShowcase quartiers={quartiers} />
 
       {/* Services Overview */}
       <section className="py-20 md:py-28 bg-[#f0eee9] border-y border-[#8C6D3E]/20">

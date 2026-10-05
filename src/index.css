@@ -36,6 +36,146 @@
   }
 }
 
+/* =========================================================
+   Quartiers de l'accueil (src/components/QuartiersShowcase.tsx)
+   Cylindre qui tourne sur lui-même : la rotation et l'effacement des cartes sont pilotés en JS,
+   ici la scène 3D, le décor des cartes et leurs réactions au survol.
+   ========================================================= */
+.qr-viewport {
+  --qr-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --qr-w: 260px; /* taille des cartes */
+  --qr-h: 360px;
+  position: relative;
+  overflow: hidden;
+  height: calc(var(--qr-h) + 80px);
+  perspective: 1600px;
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Bords fondus : les cartes naissent et disparaissent en douceur */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 2.5%, #000 97.5%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 2.5%, #000 97.5%, transparent);
+}
+@media (min-width: 640px) {
+  .qr-viewport { --qr-w: 300px; --qr-h: 410px; }
+}
+.qr-viewport.is-dragging { cursor: grabbing; }
+/* Axe du cylindre, au centre de la zone */
+.qr-ring {
+  position: absolute; left: 50%; top: 50%; width: 0; height: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.qr-ring > ul { transform-style: preserve-3d; }
+/* Chaque carte est centrée sur l'axe, puis tournée et poussée vers l'extérieur (style en ligne) */
+.qr-item {
+  position: absolute; left: 0; top: 0;
+  margin-left: calc(var(--qr-w) / -2);
+  margin-top: calc(var(--qr-h) / -2);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.qr-card {
+  position: relative;
+  display: block;
+  width: var(--qr-w);
+  height: var(--qr-h);
+  overflow: hidden;
+  background: #0D0D0D;
+  box-shadow: 0 34px 60px -32px rgba(13, 13, 13, 0.55), 0 0 0 1px rgba(140, 109, 62, 0.25);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.qr-card:focus-visible { outline: 2px solid #C5A059; outline-offset: 4px; }
+
+/* Photo : légèrement voilée au repos, elle s'éclaire et avance au survol */
+.qr-card__img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  transform: scale(1.04);
+  filter: saturate(0.82) brightness(0.8);
+  transition: transform 1.4s var(--qr-ease), filter 0.7s ease;
+}
+.qr-card:hover .qr-card__img,
+.qr-card:focus-visible .qr-card__img {
+  transform: scale(1.12);
+  filter: saturate(1.05) brightness(0.92);
+}
+/* Les autres cartes s'effacent pendant le survol */
+.qr-viewport.is-hovering .qr-card:not(:hover) .qr-card__img { filter: saturate(0.5) brightness(0.5); }
+
+.qr-card__shade {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(13, 13, 13, 0.92) 0%, rgba(13, 13, 13, 0.35) 42%, transparent 70%);
+}
+/* Halo doré qui suit le curseur */
+.qr-card__glow {
+  position: absolute; inset: 0; opacity: 0;
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 35%), rgba(217, 189, 133, 0.32), transparent 55%);
+  mix-blend-mode: screen;
+  transition: opacity 0.5s ease;
+}
+.qr-card:hover .qr-card__glow { opacity: 1; }
+
+/* Passe-partout : filet doré intérieur, qui se resserre et s'illumine au survol */
+.qr-card__frame {
+  position: absolute; inset: 14px;
+  border: 1px solid rgba(217, 189, 133, 0.32);
+  transition: inset 0.7s var(--qr-ease), border-color 0.7s ease;
+}
+.qr-card__frame::before,
+.qr-card__frame::after {
+  /* Coins marqués en haut à gauche et en bas à droite */
+  content: ""; position: absolute; width: 18px; height: 18px;
+  border-color: #C5A059; border-style: solid;
+  transition: width 0.7s var(--qr-ease), height 0.7s var(--qr-ease);
+}
+.qr-card__frame::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.qr-card__frame::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+.qr-card:hover .qr-card__frame,
+.qr-card:focus-visible .qr-card__frame { inset: 10px; border-color: rgba(217, 189, 133, 0.85); }
+.qr-card:hover .qr-card__frame::before,
+.qr-card:hover .qr-card__frame::after { width: 44px; height: 44px; }
+
+/* Texte : nom du quartier, nombre de biens, puis « Voir les biens » qui se déploie au survol */
+.qr-card__body {
+  position: absolute; left: 30px; right: 30px; bottom: 30px;
+  display: flex; flex-direction: column;
+}
+.qr-card__title {
+  font-family: 'Playfair Display', serif; font-weight: 700;
+  font-size: 30px; line-height: 1; color: #F9F7F2;
+  transition: transform 0.7s var(--qr-ease);
+}
+@media (min-width: 640px) { .qr-card__title { font-size: 34px; } }
+.qr-card__count {
+  margin-top: 10px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: #D9BD85;
+}
+.qr-card__more {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows 0.6s var(--qr-ease);
+}
+.qr-card__more > span { overflow: hidden; }
+.qr-card__cta {
+  display: inline-block; margin-top: 16px; padding-bottom: 4px;
+  font-family: 'Hanken Grotesk', sans-serif; font-size: 12px; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase; color: #F9F7F2;
+  background: linear-gradient(#C5A059, #C5A059) left bottom / 0 1px no-repeat;
+  transition: background-size 0.6s 0.15s var(--qr-ease);
+}
+.qr-card:hover .qr-card__more,
+.qr-card:focus-visible .qr-card__more { grid-template-rows: 1fr; }
+.qr-card:hover .qr-card__cta,
+.qr-card:focus-visible .qr-card__cta { background-size: 100% 1px; }
+.qr-card:hover .qr-card__title { transform: translateY(-4px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .qr-card__img, .qr-card__frame, .qr-card__frame::before, .qr-card__frame::after,
+  .qr-card__title, .qr-card__more, .qr-card__cta, .qr-card__glow { transition: none; }
+}
+
 .minimal-input {
   border: none;
   border-bottom: 1px solid #0D0D0D;

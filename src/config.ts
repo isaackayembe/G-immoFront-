@@ -44,3 +44,21 @@ export const SOCIAL_LINKS = {
   tiktok: 'https://www.tiktok.com/@gbusinessimmo',
 } as const;
 
+/**
+ * Direction de l'agence (page À propos).
+ * 👉 Pour changer la photo : remplace src/assets/images/dg.jpg (même nom) ou modifie l'import.
+ */
+import dgPhotoUrl from './assets/images/dg.jpg';
+export const DIRECTOR = {
+  name: 'Gaël Panzu',
+  role: 'Directeur Général',
+  photo: dgPhotoUrl as string,
+} as const;
+
+/** Chiffres clés (page À propos). */
+export const KEY_FIGURES: { value: string; label: string }[] = [
+  { value: '15 ans', label: "d'expérience dans l'immobilier" },
+  { value: '100+', label: 'clients accompagnés' },
+  { value: '95 %', label: 'de clients satisfaits' }, // estimation, à ajuster si l'agence a un chiffre mesuré
+];
+
