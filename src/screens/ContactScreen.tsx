@@ -5,6 +5,7 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { Phone, Mail, MapPin, Send, CheckCircle2, Clock, MessageCircle } from 'lucide-react';
 import { CONTACT } from '../config';
+import localisationMap from '../assets/images/localisation.jpeg';
 
 interface ContactScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
@@ -152,18 +153,30 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
               </div>
             </div>
 
-            {/* Map Placeholder */}
-            <div className="w-full h-64 overflow-hidden border border-[#8C6D3E]/20 relative shadow-sm">
+            {/* Plan d'accès : un clic ouvre l'adresse dans Google Maps */}
+            <a
+              href={CONTACT.mapsHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Ouvrir ${CONTACT.addressFull} dans Google Maps`}
+              className="group block w-full h-64 overflow-hidden border border-[#8C6D3E]/20 relative shadow-sm"
+            >
               <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJT9IGMCLFgT7TgFkgW4SOqMoImB4_kYKNo41TBCKgj7MP5JzbTqVJ5ms_sub_DRW614yTk9R2x9F0D_3rMCTxzaPJsqnAFoA8jfbxHda_ZBwqM8ejn8waqSh1ifnr8yZM5G_tICsCGEN6da4b3egRvVOYqLD7_DQ12wWtTe_n1hZ26qu74MAJQVZ22B0FK0yHDDiGr5ZR3papWSxq1X43JYg6KtV72qxT5RxnGM5HOkGcN9JWqX6h"
-                alt="Localisation Kinshasa"
-                className="w-full h-full object-cover grayscale opacity-85"
+                src={localisationMap}
+                alt={`Plan d'accès : ${CONTACT.addressLine1}, ${CONTACT.addressLine2}`}
+                width={818}
+                height={573}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover object-[28%_35%] transition-transform duration-700 ease-out group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-[#0D0D0D]/10 pointer-events-none" />
               <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 font-sans text-[12px] font-medium text-[#0D0D0D] shadow-sm">
                 📍 {CONTACT.addressLine1}, {CONTACT.addressLine2}
               </div>
-            </div>
+              <div className="absolute bottom-3 right-3 bg-[#0D0D0D] text-[#F9F7F2] px-3 py-1.5 font-sans text-[12px] font-medium shadow-sm group-hover:bg-[#8C6D3E] transition-colors">
+                Ouvrir dans Google Maps
+              </div>
+            </a>
           </section>
 
           {/* Formulaire Section */}
