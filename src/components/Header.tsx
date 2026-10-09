@@ -118,20 +118,6 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             Accueil
           </a>
           <a
-            href={pathFor('services')}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavClick('services', currentScreen === 'accueil' ? 'push' : 'none');
-            }}
-            className={`transition-colors py-1 ${
-              currentScreen === 'services'
-                ? linkActive
-                : linkIdle
-            }`}
-          >
-            Services
-          </a>
-          <a
             href={pathFor('offres')}
             onClick={(e) => {
               e.preventDefault();
@@ -144,6 +130,20 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             }`}
           >
             Offres
+          </a>
+          <a
+            href={pathFor('services')}
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavClick('services', currentScreen === 'accueil' ? 'push' : 'none');
+            }}
+            className={`transition-colors py-1 ${
+              currentScreen === 'services'
+                ? linkActive
+                : linkIdle
+            }`}
+          >
+            Services
           </a>
           <a
             href={pathFor('about')}
@@ -276,19 +276,6 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
             {currentScreen === 'accueil' && <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />}
           </a>
           <a
-            href={pathFor('services')}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavClick('services', 'push');
-            }}
-            className={`text-[13px] font-sans font-bold uppercase tracking-widest py-3 px-3 rounded flex items-center justify-between ${
-              currentScreen === 'services' ? drawerActive : drawerIdle
-            }`}
-          >
-            <span>Services</span>
-            {currentScreen === 'services' && <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />}
-          </a>
-          <a
             href={pathFor('offres')}
             onClick={(e) => {
               e.preventDefault();
@@ -300,6 +287,19 @@ export const Header: React.FC<HeaderProps> = ({ currentScreen, onNavigate, hideL
           >
             <span>Offres & Biens</span>
             {currentScreen === 'offres' && <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />}
+          </a>
+          <a
+            href={pathFor('services')}
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavClick('services', 'push');
+            }}
+            className={`text-[13px] font-sans font-bold uppercase tracking-widest py-3 px-3 rounded flex items-center justify-between ${
+              currentScreen === 'services' ? drawerActive : drawerIdle
+            }`}
+          >
+            <span>Services</span>
+            {currentScreen === 'services' && <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />}
           </a>
           <a
             href={pathFor('about')}

@@ -3,7 +3,7 @@ import { ScreenId, TransitionType } from '../types';
 import api from '../services/api';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { Phone, Mail, MapPin, Send, CheckCircle2, Clock, MessageCircle } from 'lucide-react';
+import { Mail, MapPin, Send, CheckCircle2, Clock, MessageCircle } from 'lucide-react';
 import { CONTACT } from '../config';
 import localisationMap from '../assets/images/localisation.jpeg';
 
@@ -64,24 +64,6 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
             </h2>
 
             <div className="flex flex-col gap-6">
-              {/* Phone */}
-              <a
-                href={CONTACT.phoneHref}
-                className="flex items-center gap-4 group p-4 bg-white hover:bg-[#F9F7F2] transition-colors duration-300 border border-[#8C6D3E]/20 shadow-sm"
-              >
-                <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#C5A059]/15 text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-[#0D0D0D] transition-colors">
-                  <Phone size={20} />
-                </div>
-                <div>
-                  <p className="font-sans text-xs font-bold tracking-widest uppercase text-[#747878] mb-1">
-                    Téléphone
-                  </p>
-                  <p className="font-sans text-[18px] text-[#0D0D0D] font-bold">
-                    {CONTACT.phoneDisplay}
-                  </p>
-                </div>
-              </a>
-
               {/* WhatsApp */}
               <a
                 href={CONTACT.whatsappHref}

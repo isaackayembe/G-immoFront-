@@ -7,6 +7,7 @@ import { HomeHero, pickHeroProperties } from '../components/HomeHero';
 import { StatusBadge, CardSkeleton, roomsLabel } from '../components/StatusBadge';
 import { pathFor, propertyPath } from '../routes';
 import { QuartiersShowcase, Quartier } from '../components/QuartiersShowcase';
+import { Testimonials } from '../components/Testimonials';
 import { ALL, BUDGET_OPTIONS, TYPE_OPTIONS, communeOptions, offersSearchPath } from '../offerFilters';
 import {
   ArrowRight,
@@ -397,6 +398,9 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
           </Link>
         </div>
       </section>
+
+      {/* Témoignages clients */}
+      <Testimonials />
 
       <Footer />
     </div>

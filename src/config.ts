@@ -62,3 +62,33 @@ export const KEY_FIGURES: { value: string; label: string }[] = [
   { value: '95 %', label: 'de clients satisfaits' }, // estimation, à ajuster si l'agence a un chiffre mesuré
 ];
 
+/**
+ * Témoignages clients (page d'accueil). La section est masquée si la liste est vide.
+ * ⚠️ EXEMPLES À REMPLACER par de vrais avis, avec l'accord des clients, avant la mise en ligne.
+ * - rating : note sur 5 (optionnelle)
+ * - context : ce que l'agence a fait pour le client (achat, location…), affiché sous le nom
+ */
+export const TESTIMONIALS: { quote: string; name: string; context: string; rating?: number }[] = [
+  {
+    quote:
+      "Une équipe à l'écoute du début à la fin. Ils ont trouvé l'appartement qui correspondait exactement à nos critères à la Gombe, et se sont occupés de toutes les démarches.",
+    name: 'Client A.',
+    context: 'Achat · Gombe',
+    rating: 5,
+  },
+  {
+    quote:
+      'Je vis à l’étranger et je cherchais à louer mon bien en toute confiance. Visites, sélection des locataires, suivi : tout a été géré avec sérieux et transparence.',
+    name: 'Client B.',
+    context: 'Mise en location · Ngaliema',
+    rating: 5,
+  },
+  {
+    quote:
+      "Des conseils clairs et honnêtes sur le prix et le quartier. Notre bureau a été trouvé en quelques semaines, dans les délais annoncés.",
+    name: 'Client C.',
+    context: 'Location de bureaux · Gombe',
+    rating: 5,
+  },
+];
+
