@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ScreenId, TransitionType, Property } from '../types';
+import { ScreenId, TransitionType, Property, PropertyType } from '../types';
 import { DashboardTab, pathFor } from '../routes';
+import { KINSHASA_COMMUNES, TYPE_OPTIONS } from '../offerFilters';
 import api, { resolveImageUrl, FALLBACK_IMAGE_URL } from '../services/api';
 import { LOGO_URL } from '../config';
 import { PropertyImageCarousel } from '../components/PropertyImageCarousel';
@@ -51,7 +52,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
   const isEditing = !!propertyToEdit;
 
   const [title, setTitle] = useState(propertyToEdit?.title || '');
-  const [type, setType] = useState<'Résidentiel' | 'Commercial' | 'Hôtel Particulier' | 'Villa'>(
+  const [type, setType] = useState<PropertyType>(
     propertyToEdit?.type || 'Villa'
   );
   const [price, setPrice] = useState(propertyToEdit?.price || '');
@@ -614,13 +615,14 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                       </label>
                       <select
                         value={type}
-                        onChange={(e) => setType(e.target.value as any)}
+                        onChange={(e) => setType(e.target.value as PropertyType)}
                         className="w-full bg-transparent border-b border-[#0D0D0D] py-2 font-sans text-[15px] outline-none text-[#0D0D0D] cursor-pointer"
                       >
-                        <option value="Villa">Villa</option>
-                        <option value="Résidentiel">Résidentiel Premium</option>
-                        <option value="Commercial">Espace Commercial</option>
-                        <option value="Hôtel Particulier">Hôtel Particulier</option>
+                        {/* Un bien enregistré avec un ancien type le garde tant qu'on ne le change pas */}
+                        {!TYPE_OPTIONS.some((o) => o.value === type) && <option value={type}>{type}</option>}
+                        {TYPE_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>{o.value}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -667,9 +669,10 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                       onChange={(e) => setCommune(e.target.value)}
                       className="w-full bg-transparent border-b border-[#0D0D0D] py-2 font-sans text-[15px] outline-none text-[#0D0D0D] cursor-pointer"
                     >
-                      <option value="Gombe">Gombe</option>
-                      <option value="Ngaliema">Ngaliema</option>
-                      <option value="Limete">Limete</option>
+                      {!KINSHASA_COMMUNES.includes(commune) && <option value={commune}>{commune}</option>}
+                      {KINSHASA_COMMUNES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
                     </select>
                   </div>
 

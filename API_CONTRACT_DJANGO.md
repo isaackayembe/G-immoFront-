@@ -26,10 +26,17 @@ import uuid
 from django.db import models
 
 class PropertyType(models.TextChoices):
-    RESIDENTIEL = 'Résidentiel', 'Résidentiel'
-    COMMERCIAL = 'Commercial', 'Commercial'
-    HOTEL_PARTICULIER = 'Hôtel Particulier', 'Hôtel Particulier'
     VILLA = 'Villa', 'Villa'
+    MAISON = 'Maison', 'Maison'
+    APPARTEMENT = 'Appartement', 'Appartement'
+    BUREAU = 'Bureau', 'Bureau'
+    ESPACE_COMMERCIAL = 'Espace commercial', 'Espace commercial'
+    TERRAIN = 'Terrain', 'Terrain'
+    # Anciens types : à garder tant que des biens existants les utilisent (le frontend les rattache
+    # pour les filtres : Résidentiel → Appartement, Commercial → Espace commercial, Hôtel Particulier → Maison)
+    RESIDENTIEL = 'Résidentiel', 'Résidentiel (ancien)'
+    COMMERCIAL = 'Commercial', 'Commercial (ancien)'
+    HOTEL_PARTICULIER = 'Hôtel Particulier', 'Hôtel Particulier (ancien)'
 
 class PropertyStatus(models.TextChoices):
     DISPONIBLE = 'Disponible', 'Disponible'
@@ -174,7 +181,7 @@ Retourne la liste des offres publiques (filtres optionnels : `?type=Villa&commun
     "location": "Kinshasa, Gombe",
     "commune": "Gombe",
     "address": "Boulevard du 30 Juin",
-    "type": "Résidentiel",
+    "type": "Appartement",
     "status": "Disponible",
     "surface": 240,
     "bedrooms": 4,

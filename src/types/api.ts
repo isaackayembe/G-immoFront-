@@ -1,9 +1,15 @@
 // --- TYPES COMMONS & ENUMS ---
-export type PropertyType = 
-  | 'Résidentiel' 
-  | 'Commercial' 
-  | 'Hôtel Particulier' 
-  | 'Villa';
+export type PropertyType =
+  | 'Villa'
+  | 'Maison'
+  | 'Appartement'
+  | 'Bureau'
+  | 'Espace commercial'
+  | 'Terrain'
+  // Anciens types, encore possibles sur des biens publiés avant le changement
+  | 'Résidentiel'
+  | 'Commercial'
+  | 'Hôtel Particulier';
 
 export type PropertyStatus = 
   | 'Disponible' 

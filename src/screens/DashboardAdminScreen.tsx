@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ScreenId, TransitionType, Property, PropertyStatus, DashboardStats } from '../types';
 import { DashboardTab, DASHBOARD_TABS } from '../routes';
+import { KINSHASA_COMMUNES, TYPE_OPTIONS } from '../offerFilters';
 import { LOGO_URL } from '../config';
 import api, { resolveImageUrl, FALLBACK_IMAGE_URL } from '../services/api';
 import { PropertyImageCarousel } from '../components/PropertyImageCarousel';
@@ -1010,10 +1011,12 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                     onChange={(e) => setEditingProperty({ ...editingProperty, type: e.target.value as any })}
                     className="w-full bg-[#F9F7F2] border border-[#8C6D3E]/30 p-2 font-sans text-[13px] outline-none text-[#0D0D0D] cursor-pointer"
                   >
-                    <option value="Villa">Villa</option>
-                    <option value="Résidentiel">Résidentiel Premium</option>
-                    <option value="Commercial">Espace Commercial</option>
-                    <option value="Hôtel Particulier">Hôtel Particulier</option>
+                    {!TYPE_OPTIONS.some((o) => o.value === editingProperty.type) && (
+                      <option value={editingProperty.type}>{editingProperty.type}</option>
+                    )}
+                    {TYPE_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.value}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -1043,13 +1046,19 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                   <label className="font-sans text-[11px] font-bold tracking-widest text-[#747878] uppercase block mb-1">
                     Commune
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={editingProperty.commune}
                     onChange={(e) => setEditingProperty({ ...editingProperty, commune: e.target.value, location: `Kinshasa, ${e.target.value}` })}
-                    className="minimal-input text-[14px] text-[#0D0D0D] w-full"
+                    className="w-full bg-[#F9F7F2] border border-[#8C6D3E]/30 p-2 font-sans text-[13px] outline-none text-[#0D0D0D] cursor-pointer"
                     required
-                  />
+                  >
+                    {!KINSHASA_COMMUNES.includes(editingProperty.commune) && (
+                      <option value={editingProperty.commune}>{editingProperty.commune || 'Choisir une commune'}</option>
+                    )}
+                    {KINSHASA_COMMUNES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

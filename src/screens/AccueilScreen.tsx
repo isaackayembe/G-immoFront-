@@ -8,7 +8,15 @@ import { StatusBadge, CardSkeleton, roomsLabel } from '../components/StatusBadge
 import { pathFor, propertyPath } from '../routes';
 import { QuartiersShowcase, Quartier } from '../components/QuartiersShowcase';
 import { Testimonials } from '../components/Testimonials';
-import { ALL, BUDGET_OPTIONS, TYPE_OPTIONS, communeOptions, offersSearchPath } from '../offerFilters';
+import {
+  ALL,
+  BUDGET_OPTIONS,
+  TYPE_OPTIONS,
+  communeOptions,
+  offersSearchPath,
+  sameCommune,
+  showcaseCommunes,
+} from '../offerFilters';
 import {
   ArrowRight,
   MapPin,
@@ -72,9 +80,9 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
   // Quartiers : tous ceux où l'agence a des biens (+ les principaux), les plus fournis d'abord
   const quartiers = useMemo<Quartier[]>(
     () =>
-      communes
+      showcaseCommunes(onSale)
         .map((commune, i) => {
-          const inCommune = onSale.filter((p) => p.commune?.toLowerCase().includes(commune.toLowerCase()));
+          const inCommune = onSale.filter((p) => sameCommune(p.commune, commune));
           return {
             commune,
             count: inCommune.length,
@@ -82,7 +90,7 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
           };
         })
         .sort((a, b) => b.count - a.count),
-    [communes, onSale]
+    [onSale]
   );
 
   const featuredFacts = featuredProperty ? roomsLabel(featuredProperty) : '';
