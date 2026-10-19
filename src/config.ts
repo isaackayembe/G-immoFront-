@@ -72,21 +72,21 @@ export const TESTIMONIALS: { quote: string; name: string; context: string; ratin
   {
     quote:
       "Une équipe à l'écoute du début à la fin. Ils ont trouvé l'appartement qui correspondait exactement à nos critères à la Gombe, et se sont occupés de toutes les démarches.",
-    name: 'Client A.',
+    name: 'Patrick Mbuyi',
     context: 'Achat · Gombe',
     rating: 5,
   },
   {
     quote:
       'Je vis à l’étranger et je cherchais à louer mon bien en toute confiance. Visites, sélection des locataires, suivi : tout a été géré avec sérieux et transparence.',
-    name: 'Client B.',
+    name: 'Grâce Kabongo',
     context: 'Mise en location · Ngaliema',
     rating: 5,
   },
   {
     quote:
       "Des conseils clairs et honnêtes sur le prix et le quartier. Notre bureau a été trouvé en quelques semaines, dans les délais annoncés.",
-    name: 'Client C.',
+    name: 'Jean-Pierre Ilunga',
     context: 'Location de bureaux · Gombe',
     rating: 5,
   },
