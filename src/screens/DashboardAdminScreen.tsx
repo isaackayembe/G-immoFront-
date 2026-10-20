@@ -654,7 +654,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                             )}
                           </div>
 
-                          <p className="font-sans text-[13px] text-[#747878] line-clamp-2 leading-relaxed pt-1">
+                          <p className="font-sans text-[13px] text-[#747878] line-clamp-2 leading-relaxed pt-1 wrap-anywhere">
                             {draft.description}
                           </p>
 
@@ -877,7 +877,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
               {previewProperty.price}
             </p>
 
-            <p className="font-sans text-[15px] text-[#747878] leading-relaxed mb-6">
+            <p className="font-sans text-[15px] text-[#747878] leading-relaxed mb-6 wrap-anywhere">
               {previewProperty.description}
             </p>
 

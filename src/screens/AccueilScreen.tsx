@@ -247,7 +247,7 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
                   </span>
                 </div>
                 {featuredProperty.description && (
-                  <p className="font-sans text-[15px] text-[#6B6F6F] leading-relaxed mb-4 line-clamp-3">
+                  <p className="font-sans text-[15px] text-[#6B6F6F] leading-relaxed mb-4 line-clamp-3 wrap-anywhere">
                     {featuredProperty.description}
                   </p>
                 )}
@@ -310,7 +310,7 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
                         </h3>
                         <p className="font-sans text-[14px] text-[#747878] mb-3">{prop.location}</p>
                         {prop.description && (
-                          <p className="font-sans text-[13px] text-[#6B6F6F] leading-relaxed mb-3 line-clamp-2">
+                          <p className="font-sans text-[13px] text-[#6B6F6F] leading-relaxed mb-3 line-clamp-2 wrap-anywhere">
                             {prop.description}
                           </p>
                         )}

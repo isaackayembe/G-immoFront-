@@ -101,7 +101,7 @@ export const PropertyDetailScreen: React.FC<PropertyDetailScreenProps> = ({ onNa
 
             <p className="font-serif text-[24px] md:text-[28px] text-[#C5A059] font-bold mb-4">{property.price}</p>
 
-            <p className="font-sans text-[15px] text-[#747878] leading-relaxed mb-6 whitespace-pre-line">
+            <p className="font-sans text-[15px] text-[#747878] leading-relaxed mb-6 whitespace-pre-line wrap-anywhere">
               {property.description}
             </p>
 
