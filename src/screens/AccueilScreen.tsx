@@ -246,6 +246,11 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
                     {featuredProperty.price}
                   </span>
                 </div>
+                {featuredProperty.description && (
+                  <p className="font-sans text-[15px] text-[#6B6F6F] leading-relaxed mb-4 line-clamp-3">
+                    {featuredProperty.description}
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-6 font-sans text-[#747878] text-[14px] border-t border-[#f0eee9] pt-4">
                   {featuredProperty.surface > 0 && (
                     <span className="flex items-center gap-1.5">
@@ -304,6 +309,11 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
                           {prop.title}
                         </h3>
                         <p className="font-sans text-[14px] text-[#747878] mb-3">{prop.location}</p>
+                        {prop.description && (
+                          <p className="font-sans text-[13px] text-[#6B6F6F] leading-relaxed mb-3 line-clamp-2">
+                            {prop.description}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <div className="font-serif text-[20px] text-[#0D0D0D] font-bold mb-2">
