@@ -2,12 +2,14 @@ import React from 'react';
 import { ScreenId, TransitionType } from '../types';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+import { useSeo } from '../seo';
 
 interface NotFoundScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
 }
 
 export const NotFoundScreen: React.FC<NotFoundScreenProps> = ({ onNavigate }) => {
+  useSeo({ title: 'Page introuvable', noindex: true });
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F7F2] text-[#0D0D0D]">
       <Header currentScreen="accueil" onNavigate={onNavigate} />

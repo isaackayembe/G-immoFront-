@@ -4,14 +4,6 @@ import { ScreenId, TransitionType, Property } from '../types';
 import { propertyPath } from '../routes';
 import './HomeHero.css';
 
-import tourPiscines from '../assets/images/hero/hero-tour-piscines.jpg';
-import tourPiscines960 from '../assets/images/hero/hero-tour-piscines-960.jpg';
-import residenceCourbe from '../assets/images/hero/residence-courbe.jpg';
-import residenceCourbe960 from '../assets/images/hero/residence-courbe-960.jpg';
-import salonSignature from '../assets/images/hero/salon-signature.jpg';
-import salonSignature960 from '../assets/images/hero/salon-signature-960.jpg';
-import penthouseVue from '../assets/images/hero/penthouse-vue.jpg';
-import penthouseVue960 from '../assets/images/hero/penthouse-vue-960.jpg';
 import medaillon from '../assets/images/hero/medaillon-320.webp';
 
 interface HomeHeroProps {
@@ -39,14 +31,6 @@ const KEN_BURNS: React.CSSProperties[] = [
   { '--origin': '60% 60%', '--kb-from': 'scale(1.12)', '--kb-to': 'scale(1.01)' },
   { '--origin': '70% 45%', '--kb-from': 'scale(1.04) translate(-1.5%, 0)', '--kb-to': 'scale(1.12) translate(1%, 0)' },
 ] as React.CSSProperties[];
-
-/** Photos de secours tant que l'API n'a pas renvoyé d'offres publiées. */
-const FALLBACK_SLIDES: Slide[] = [
-  { key: 'f1', src: tourPiscines, srcMobile: tourPiscines960, title: 'Nos biens à Kinshasa', facts: [] },
-  { key: 'f2', src: residenceCourbe, srcMobile: residenceCourbe960, title: 'Nos biens à Kinshasa', facts: [] },
-  { key: 'f3', src: salonSignature, srcMobile: salonSignature960, title: 'Nos biens à Kinshasa', facts: [] },
-  { key: 'f4', src: penthouseVue, srcMobile: penthouseVue960, title: 'Nos biens à Kinshasa', facts: [] },
-];
 
 /** Biens montrés dans le hero : publiés, avec photo, non vendus de préférence. L'accueil s'en sert pour ne pas les répéter. */
 export function pickHeroProperties(properties: Property[]): Property[] {
@@ -112,11 +96,8 @@ const Arrow = ({ back = false }: { back?: boolean }) => (
 export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate, properties }) => {
   const navigate = useNavigate();
 
-  // ── Biens affichés : les offres publiées avec photo, sinon les photos de secours
-  const slides = useMemo<Slide[]>(() => {
-    const picked = pickHeroProperties(properties);
-    return picked.length ? picked.map(toSlide) : FALLBACK_SLIDES;
-  }, [properties]);
+  // ── Biens affichés : uniquement les offres publiées avec photo venant de l'API
+  const slides = useMemo<Slide[]>(() => pickHeroProperties(properties).map(toSlide), [properties]);
   const slidesKey = slides.map((s) => s.key).join('|');
   const N = slides.length;
 
@@ -156,9 +137,13 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate, properties }) =>
     let raf = 0;
     let done = false;
     const timers: number[] = [];
-    preload(slideSrc(slides[0])).then(() => {
+    if (slides[0]) {
+      preload(slideSrc(slides[0])).then(() => {
+        loaded = true;
+      });
+    } else {
       loaded = true;
-    });
+    }
 
     const lift = () => {
       if (done) return;
@@ -209,6 +194,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate, properties }) =>
   // ── Changement de bien
   const go = useCallback(
     async (target: number) => {
+      if (!N) return;
       const n = ((target % N) + N) % N;
       const current = indexRef.current;
       if (n === current || busy.current) return;
@@ -303,7 +289,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate, properties }) =>
   };
 
   const next = slides[(index + 1) % N];
-  const isFallback = !slides[0]?.propertyId;
 
   return (
     <>
@@ -388,7 +373,8 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate, properties }) =>
             </div>
           </div>
 
-          {/* La vitrine : le bien actuellement à l'écran */}
+          {/* La vitrine : le bien actuellement à l'écran (rien tant que l'API n'a pas renvoyé de bien) */}
+          {N > 0 && (
           <aside
             className="gh-vitrine gh-enter d4"
             aria-roledescription="carrousel"
@@ -399,17 +385,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate, properties }) =>
             onBlur={() => (pauseFlags.current.focus = false)}
           >
             <div className="gh-copies" aria-live="polite">
-              {isFallback ? (
-                <article className="gh-copy is-active">
-                  <p className="gh-copy__status"><i />Vente et location</p>
-                  <h2 className="gh-copy__title">Nos biens à Kinshasa</h2>
-                  <ul className="gh-copy__facts"><li>Appartements</li><li>Villas</li><li>Bureaux</li></ul>
-                  <button type="button" className="gh-copy__link" onClick={() => onNavigate('offres', 'push')}>
-                    Voir les offres <Arrow />
-                  </button>
-                </article>
-              ) : (
-                slides.map((s, k) => {
+              {slides.map((s, k) => {
                   const on = k === index;
                   return (
                     <article
@@ -436,8 +412,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate, properties }) =>
                       </button>
                     </article>
                   );
-                })
-              )}
+                })}
             </div>
 
             {N > 1 && (
@@ -486,18 +461,17 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate, properties }) =>
                   </div>
                 </div>
 
-                {!isFallback && (
-                  <button type="button" className="gh-upnext" onClick={() => go(index + 1)}>
-                    <img className="gh-upnext__img" src={next.srcMobile || next.src} alt="" width={56} height={42} loading="lazy" />
-                    <span className="gh-upnext__txt">
-                      <span className="gh-upnext__k">Ensuite</span>
-                      <span className="gh-upnext__t">{next.title}</span>
-                    </span>
-                  </button>
-                )}
+                <button type="button" className="gh-upnext" onClick={() => go(index + 1)}>
+                  <img className="gh-upnext__img" src={next.srcMobile || next.src} alt="" width={56} height={42} loading="lazy" />
+                  <span className="gh-upnext__txt">
+                    <span className="gh-upnext__k">Ensuite</span>
+                    <span className="gh-upnext__t">{next.title}</span>
+                  </span>
+                </button>
               </>
             )}
           </aside>
+          )}
         </div>
 
         <button

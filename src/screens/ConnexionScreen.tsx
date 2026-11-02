@@ -5,12 +5,14 @@ import api from '../services/api';
 import { LOGO_URL } from '../config';
 import { SCREEN_PATHS } from '../routes';
 import { ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react';
+import { useSeo } from '../seo';
 
 interface ConnexionScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
 }
 
 export const ConnexionScreen: React.FC<ConnexionScreenProps> = ({ onNavigate }) => {
+  useSeo({ title: 'Connexion', noindex: true });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -117,7 +119,7 @@ export const ConnexionScreen: React.FC<ConnexionScreenProps> = ({ onNavigate }) 
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="minimal-input text-[16px] text-[#0D0D0D] w-full"
-                placeholder="votre.email@gbusinessimmo.cd"
+                placeholder="admin@g-immobusiness.com"
               />
             </div>
 
@@ -140,6 +142,8 @@ export const ConnexionScreen: React.FC<ConnexionScreenProps> = ({ onNavigate }) 
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"
+                  id="remember-login"
+                  name="rememberLogin"
                   defaultChecked
                   className="accent-[#C5A059]"
                 />

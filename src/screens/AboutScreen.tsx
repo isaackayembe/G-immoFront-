@@ -4,6 +4,7 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { LOGO_URL, DIRECTOR, KEY_FIGURES } from '../config';
 import { Award, Shield, Scale, Eye } from 'lucide-react';
+import { useSeo } from '../seo';
 
 interface AboutScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
@@ -33,6 +34,11 @@ const PILLARS = [
 ];
 
 export const AboutScreen: React.FC<AboutScreenProps> = ({ onNavigate }) => {
+  useSeo({
+    title: "À propos de l'agence",
+    description:
+      "G Business Immo, agence immobilière de prestige à Kinshasa : notre histoire, notre équipe et nos engagements envers les acquéreurs, investisseurs et entreprises.",
+  });
   const figures = KEY_FIGURES;
 
   return (

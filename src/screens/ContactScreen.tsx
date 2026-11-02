@@ -6,12 +6,18 @@ import { Footer } from '../components/Footer';
 import { Mail, MapPin, Send, CheckCircle2, Clock, MessageCircle } from 'lucide-react';
 import { CONTACT } from '../config';
 import localisationMap from '../assets/images/localisation.jpeg';
+import { useSeo } from '../seo';
 
 interface ContactScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
 }
 
 export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
+  useSeo({
+    title: 'Contact',
+    description:
+      `Contactez G Business Immo : ${CONTACT.addressLine1}, ${CONTACT.addressLine2}. Téléphone et WhatsApp ${CONTACT.phoneDisplay}. Estimation et rendez-vous de visite.`,
+  });
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,22 +26,36 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState(
+    'Votre message a bien été transmis. Notre équipe vous recontactera sous 24 heures.'
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message || isSubmitting) return;
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
-      await api.sendContactMessage({
+      const response = await api.sendContactMessage({
         name: formData.name,
         email: formData.email,
         subject: formData.subject || 'Demande de contact',
         message: formData.message,
       });
+      if (!response?.success) {
+        throw new Error(response?.message || "Le serveur n'a pas confirmé l'envoi du message.");
+      }
+      setSuccessMessage(response.message);
       setSubmitted(true);
     } catch (err) {
-      console.warn('Backend API contact indisponible, confirmation locale:', err);
-      setSubmitted(true);
+      console.error("Échec de l'envoi du formulaire de contact :", err);
+      const detail = err instanceof Error ? err.message : '';
+      setSubmitError(
+        /Failed to fetch|NetworkError|Load failed/i.test(detail)
+          ? "Le serveur est injoignable. Votre message n'a pas été envoyé. Veuillez réessayer ou nous contacter par e-mail."
+          : detail || "Votre message n'a pas pu être envoyé. Veuillez réessayer."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -176,7 +196,7 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
                   Message envoyé avec succès
                 </h3>
                 <p className="font-sans text-[15px] text-[#747878] max-w-md">
-                  Nous vous remercions pour votre confiance. Un consultant spécialisé examinera votre demande et prendra contact avec vous sous 24 heures.
+                  {successMessage}
                 </p>
                 <button
                   onClick={() => {
@@ -190,6 +210,14 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                {submitError && (
+                  <p
+                    role="alert"
+                    className="border border-rose-300 bg-rose-50 p-3 font-sans text-[14px] text-rose-800"
+                  >
+                    {submitError}
+                  </p>
+                )}
                 <div className="flex flex-col gap-2">
                   <label htmlFor="name" className="font-sans text-xs font-bold tracking-widest uppercase text-[#0D0D0D]">
                     Nom Complet

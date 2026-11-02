@@ -29,13 +29,7 @@ import {
   Search,
   Image as ImageIcon,
 } from 'lucide-react';
-
-import penthouseVue960 from '../assets/images/hero/penthouse-vue-960.jpg';
-import residenceCourbe960 from '../assets/images/hero/residence-courbe-960.jpg';
-import salonSignature960 from '../assets/images/hero/salon-signature-960.jpg';
-
-/** Photo d'ambiance d'un quartier tant qu'aucun bien en ligne n'y a de photo. */
-const COMMUNE_FALLBACK_IMAGES = [penthouseVue960, residenceCourbe960, salonSignature960];
+import { useSeo } from '../seo';
 
 interface AccueilScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
@@ -48,6 +42,7 @@ const selectClass =
 const labelClass = 'font-sans text-[11px] font-bold uppercase tracking-widest text-[#0D0D0D]';
 
 export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, properties, loading = false }) => {
+  useSeo();
   const navigate = useNavigate();
 
   // Biens proposés à la vente/location : ni brouillons, ni vendus
@@ -77,16 +72,16 @@ export const AccueilScreen: React.FC<AccueilScreenProps> = ({ onNavigate, proper
     });
   };
 
-  // Quartiers : tous ceux où l'agence a des biens (+ les principaux), les plus fournis d'abord
+  // Quartiers : uniquement ceux où l'agence a des biens en ligne, les plus fournis d'abord
   const quartiers = useMemo<Quartier[]>(
     () =>
       showcaseCommunes(onSale)
-        .map((commune, i) => {
+        .map((commune) => {
           const inCommune = onSale.filter((p) => sameCommune(p.commune, commune));
           return {
             commune,
             count: inCommune.length,
-            image: inCommune.find((p) => p.imageUrl)?.imageUrl || COMMUNE_FALLBACK_IMAGES[i % COMMUNE_FALLBACK_IMAGES.length],
+            image: (inCommune.find((p) => p.imageUrl) ?? inCommune[0]).imageUrl,
           };
         })
         .sort((a, b) => b.count - a.count),

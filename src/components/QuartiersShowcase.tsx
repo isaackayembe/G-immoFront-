@@ -211,7 +211,7 @@ export const QuartiersShowcase: React.FC<{ quartiers: Quartier[] }> = ({ quartie
   itemRefs.current.length = count;
 
   const countLabel = (q: Quartier) =>
-    q.count > 0 ? `${q.count} ${q.count > 1 ? 'biens disponibles' : 'bien disponible'}` : 'Biens sur demande';
+    `${q.count} ${q.count > 1 ? 'biens disponibles' : 'bien disponible'}`;
 
   return (
     <section className="pb-12 sm:pb-16 md:pb-24 w-full overflow-hidden">

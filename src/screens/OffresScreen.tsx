@@ -16,6 +16,7 @@ import {
   matchesFilters,
 } from '../offerFilters';
 import { Filter, MapPin, Maximize, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import { useSeo } from '../seo';
 
 interface OffresScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
@@ -24,6 +25,11 @@ interface OffresScreenProps {
 }
 
 export const OffresScreen: React.FC<OffresScreenProps> = ({ onNavigate, properties, loading = false }) => {
+  useSeo({
+    title: 'Biens à vendre et à louer à Kinshasa',
+    description:
+      'Appartements, villas, maisons et bureaux à vendre ou à louer à Kinshasa (Gombe, Ngaliema, Limete…). Consultez les offres de G Business Immo.',
+  });
   // Les filtres vivent dans l'URL (?type=…&commune=…&budget=…) : la recherche de l'accueil arrive déjà filtrée
   const [searchParams, setSearchParams] = useSearchParams();
   const filters = filtersFromParams(searchParams);

@@ -7,6 +7,7 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { PropertyImageCarousel } from '../components/PropertyImageCarousel';
 import { ArrowLeft } from 'lucide-react';
+import { useSeo, shortDescription } from '../seo';
 
 interface PropertyDetailScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
@@ -36,14 +37,19 @@ export const PropertyDetailScreen: React.FC<PropertyDetailScreenProps> = ({ onNa
   // Un brouillon n'est visible que par l'admin
   const isHidden = property?.status === 'Brouillon' && !api.isAuthenticated();
 
-  useEffect(() => {
-    if (property && !isHidden) {
-      document.title = `${property.title} — G Business Immo`;
-    }
-    return () => {
-      document.title = 'G Business Immo';
-    };
-  }, [property, isHidden]);
+  const visible = property && !isHidden ? property : null;
+  useSeo({
+    title: visible ? `${visible.title} à ${visible.commune || 'Kinshasa'}` : 'Bien immobilier',
+    description: visible
+      ? shortDescription(
+          [visible.type, visible.surface ? `${visible.surface} m²` : '', visible.price, visible.description]
+            .filter(Boolean)
+            .join(' · ')
+        )
+      : undefined,
+    image: visible?.imageUrl || undefined,
+    noindex: notFound || isHidden,
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F7F2] text-[#0D0D0D]">

@@ -298,6 +298,31 @@ Soumission du formulaire de contact client.
 }
 ```
 
+Le backend doit envoyer le message à `CONTACT_EMAIL` après validation. Utiliser l'adresse du visiteur comme
+`Reply-To`, et une adresse du domaine de l'agence comme expéditeur (`DEFAULT_FROM_EMAIL`) afin de respecter
+les règles SPF/DMARC. Ne jamais placer le mot de passe SMTP dans le frontend ou dans le dépôt.
+
+Configurer les variables d'environnement SMTP sur l'hébergement Django, puis les lire dans `settings.py` :
+
+```python
+import os
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.environ["EMAIL_HOST"]
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ["EMAIL_HOST_USER"]
+EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true").lower() == "true"
+DEFAULT_FROM_EMAIL = os.environ["DEFAULT_FROM_EMAIL"]
+CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL", "admin@g-immobusiness.com")
+```
+
+Dans la vue `POST /api/contact/`, envoyer un e-mail avec le sujet et le message soumis, inclure le nom et
+l'adresse du visiteur dans le corps, et définir `reply_to=[contact.email]`. Ne retourner `success: true`
+qu'après acceptation de l'envoi par le serveur SMTP. En cas d'échec, répondre avec une erreur HTTP afin que
+le frontend affiche l'échec et permette une nouvelle tentative. Tester l'envoi depuis l'environnement de
+production : les paramètres locaux ne configurent pas automatiquement PythonAnywhere.
+
 ---
 
 ## 5. 🐍 Implémentation Django REST Framework Recommandée

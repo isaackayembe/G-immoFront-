@@ -27,15 +27,40 @@ export const FALLBACK_IMAGE_URL =
  */
 export function resolveImageUrl(url: string | null | undefined): string {
   if (!url) return FALLBACK_IMAGE_URL;
-  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:')) return url;
-  if (url.startsWith('/')) return `${BACKEND_ORIGIN}${url}`;
-  return FALLBACK_IMAGE_URL;
+  const trimmed = url.trim();
+  if (!trimmed) return FALLBACK_IMAGE_URL;
+
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('data:')
+  ) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith('//')) {
+    return `${window.location.protocol}${trimmed}`;
+  }
+
+  if (trimmed.startsWith('/')) return `${BACKEND_ORIGIN}${trimmed}`;
+
+  const normalized = trimmed.replace(/^\/+/, '');
+  return `${BACKEND_ORIGIN.replace(/\/$/, '')}/${normalized}`;
 }
 
 /**
  * Transforme une réponse d'erreur du backend en message lisible.
  * DRF renvoie soit { detail | message | error }, soit les erreurs par champ : { champ: ["message", …] }.
  */
+/** Erreur renvoyée par l'API, avec le code HTTP (ex. 404 : le bien n'existe plus sur le serveur). */
+export class ApiError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 function formatApiError(body: unknown, status: number): string {
   if (body && typeof body === 'object') {
     const b = body as Record<string, unknown>;
@@ -76,21 +101,32 @@ class ApiService {
     const response = await fetch(url, { ...options, headers });
 
     if (response.status === 401) {
-      // Déconnexion ou rafraîchissement
-      localStorage.removeItem('access_token');
-      // Redirection login optionnelle
+      this.logout();
     }
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({}));
-      throw new Error(formatApiError(errorBody, response.status));
+      const errorBody = await response.text().then((text) => {
+        if (!text) return {};
+        try {
+          return JSON.parse(text);
+        } catch {
+          return { detail: text };
+        }
+      });
+      throw new ApiError(formatApiError(errorBody, response.status), response.status);
     }
 
     if (response.status === 204) {
       return null as unknown as T;
     }
 
-    return response.json();
+    const responseText = await response.text();
+    if (!responseText) return null as unknown as T;
+    try {
+      return JSON.parse(responseText) as T;
+    } catch {
+      return responseText as unknown as T;
+    }
   }
 
   /**
@@ -107,15 +143,28 @@ class ApiService {
     });
 
     if (response.status === 401) {
-      localStorage.removeItem('access_token');
+      this.logout();
     }
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({})); // réponse non-JSON → message générique
-      throw new Error(formatApiError(errorBody, response.status));
+      const errorBody = await response.text().then((text) => {
+        if (!text) return {};
+        try {
+          return JSON.parse(text);
+        } catch {
+          return { detail: text };
+        }
+      });
+      throw new ApiError(formatApiError(errorBody, response.status), response.status);
     }
 
-    return response.json();
+    const responseText = await response.text();
+    if (!responseText) return null as unknown as T;
+    try {
+      return JSON.parse(responseText) as T;
+    } catch {
+      return responseText as unknown as T;
+    }
   }
 
   // ==========================================

@@ -26,6 +26,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
+import { useSeo } from '../seo';
 
 interface AjouterOffreScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType, tab?: DashboardTab) => void;
@@ -42,6 +43,21 @@ interface CatalogPhoto {
   commune: string;
 }
 
+/** Prestations connues du backend (admin Django → Prestations). Les noms doivent être identiques à ceux du serveur. */
+const AMENITY_OPTIONS = [
+  'Piscine',
+  'Sécurité 24/7',
+  'Domotique',
+  'Vue Fleuve',
+  'Jaccuzi',
+  'Parking',
+  'Salle de sport',
+  'Salle de Yoga',
+  'Espace vert',
+  'Ascenseur',
+  'Groupe électrogène',
+];
+
 export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
   onNavigate,
   onAddProperty,
@@ -49,6 +65,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
   propertyToEdit,
   existingProperties,
 }) => {
+  useSeo({ title: propertyToEdit ? 'Modifier une offre' : 'Ajouter une offre', noindex: true });
   const isEditing = !!propertyToEdit;
 
   const [title, setTitle] = useState(propertyToEdit?.title || '');
@@ -63,10 +80,11 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
   const [bedrooms, setBedrooms] = useState<number>(propertyToEdit?.bedrooms ?? 4);
   const [rooms, setRooms] = useState<number>(propertyToEdit?.rooms ?? 5);
   const [description, setDescription] = useState(propertyToEdit?.description || '');
-  const [piscine, setPiscine] = useState(propertyToEdit?.amenities?.includes('Piscine') ?? true);
-  const [securite, setSecurite] = useState(propertyToEdit?.amenities?.includes('Sécurité 24/7') ?? true);
-  const [domotique, setDomotique] = useState(propertyToEdit?.amenities?.includes('Domotique') ?? false);
-  const [vueFleuve, setVueFleuve] = useState(propertyToEdit?.amenities?.includes('Vue Fleuve') ?? false);
+  const [amenities, setAmenities] = useState<string[]>(propertyToEdit?.amenities ?? ['Piscine', 'Sécurité 24/7']);
+  const toggleAmenity = (name: string, checked: boolean) =>
+    setAmenities((prev) => (checked ? [...prev, name] : prev.filter((a) => a !== name)));
+  // Envoyées dans l'ordre de la liste, sans doublon
+  const selectedAmenities = () => AMENITY_OPTIONS.filter((a) => amenities.includes(a));
 
   // État des images :
   // Si édition d'une offre : charger ses vraies images
@@ -269,12 +287,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
       bedrooms: bedrooms || 4,
       rooms: rooms || 5,
       description: description || 'Brouillon en cours de rédaction.',
-      amenities: [
-        piscine && 'Piscine',
-        securite && 'Sécurité 24/7',
-        domotique && 'Domotique',
-        vueFleuve && 'Vue Fleuve',
-      ].filter(Boolean) as string[],
+      amenities: selectedAmenities(),
     };
 
     if (isEditing && propertyToEdit) {
@@ -377,12 +390,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
       bedrooms: bedrooms || 4,
       rooms: rooms || 5,
       description: description || 'Superbe bien d\'exception idéalement situé, aux prestations haut de gamme et finitions irréprochables.',
-      amenities: [
-        piscine && 'Piscine',
-        securite && 'Sécurité 24/7',
-        domotique && 'Domotique',
-        vueFleuve && 'Vue Fleuve',
-      ].filter(Boolean) as string[],
+      amenities: selectedAmenities(),
     };
 
     if (isEditing && propertyToEdit) {
@@ -599,6 +607,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                       Titre de l'annonce
                     </label>
                     <input
+                      name="title"
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
@@ -614,6 +623,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                         Type de propriété
                       </label>
                       <select
+                        name="type"
                         value={type}
                         onChange={(e) => setType(e.target.value as PropertyType)}
                         className="w-full bg-transparent border-b border-[#0D0D0D] py-2 font-sans text-[15px] outline-none text-[#0D0D0D] cursor-pointer"
@@ -633,6 +643,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                       <div className="flex items-center">
                         <span className="font-serif text-[18px] mr-2 text-[#0D0D0D]">$</span>
                         <input
+                          name="price"
                           type="text"
                           value={price}
                           onChange={(e) => {
@@ -665,6 +676,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                       Commune / Quartier
                     </label>
                     <select
+                      name="commune"
                       value={commune}
                       onChange={(e) => setCommune(e.target.value)}
                       className="w-full bg-transparent border-b border-[#0D0D0D] py-2 font-sans text-[15px] outline-none text-[#0D0D0D] cursor-pointer"
@@ -681,6 +693,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                       Adresse complète
                     </label>
                     <input
+                      name="address"
                       type="text"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
@@ -706,6 +719,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                       Surface (m²)
                     </label>
                     <input
+                      name="surface"
                       type="number"
                       value={surface}
                       onChange={(e) => setSurface(parseInt(e.target.value, 10))}
@@ -719,6 +733,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                       Chambres
                     </label>
                     <input
+                      name="bedrooms"
                       type="number"
                       value={bedrooms}
                       onChange={(e) => setBedrooms(parseInt(e.target.value, 10))}
@@ -732,6 +747,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                       Salles de bain / Pièces
                     </label>
                     <input
+                      name="rooms"
                       type="number"
                       value={rooms}
                       onChange={(e) => setRooms(parseInt(e.target.value, 10))}
@@ -746,42 +762,19 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                     Prestations exclusives
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-sans">
-                    <label className="flex items-center gap-2 cursor-pointer text-[14px]">
-                      <input
-                        type="checkbox"
-                        checked={piscine}
-                        onChange={(e) => setPiscine(e.target.checked)}
-                        className="accent-[#C5A059]"
-                      />
-                      <span className="text-[#0D0D0D]">Piscine</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer text-[14px]">
-                      <input
-                        type="checkbox"
-                        checked={securite}
-                        onChange={(e) => setSecurite(e.target.checked)}
-                        className="accent-[#C5A059]"
-                      />
-                      <span className="text-[#0D0D0D]">Sécurité 24/7</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer text-[14px]">
-                      <input
-                        type="checkbox"
-                        checked={domotique}
-                        onChange={(e) => setDomotique(e.target.checked)}
-                        className="accent-[#C5A059]"
-                      />
-                      <span className="text-[#0D0D0D]">Domotique</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer text-[14px]">
-                      <input
-                        type="checkbox"
-                        checked={vueFleuve}
-                        onChange={(e) => setVueFleuve(e.target.checked)}
-                        className="accent-[#C5A059]"
-                      />
-                      <span className="text-[#0D0D0D]">Vue Fleuve</span>
-                    </label>
+                    {AMENITY_OPTIONS.map((name) => (
+                      <label key={name} className="flex items-center gap-2 cursor-pointer text-[14px]">
+                        <input
+                          name="amenities"
+                          value={name}
+                          type="checkbox"
+                          checked={amenities.includes(name)}
+                          onChange={(e) => toggleAmenity(name, e.target.checked)}
+                          className="accent-[#C5A059]"
+                        />
+                        <span className="text-[#0D0D0D]">{name}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -793,6 +786,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                   <h2 className="font-serif text-[20px] font-bold text-[#0D0D0D]">Description</h2>
                 </div>
                 <textarea
+                  name="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={5}
@@ -872,6 +866,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                         <label className="bg-[#0D0D0D] text-[#F9F7F2] font-sans font-bold text-[11px] uppercase tracking-widest px-5 py-2.5 cursor-pointer hover:bg-[#8C6D3E] transition-colors inline-block shadow-sm">
                           Ajouter des fichiers
                           <input
+                            name="photos"
                             type="file"
                             accept="image/*"
                             multiple
@@ -888,6 +883,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                         </label>
                         <div className="flex gap-2">
                           <input
+                            name="imageUrl"
                             type="text"
                             value={directUrlInput}
                             onChange={(e) => setDirectUrlInput(e.target.value)}
@@ -1042,6 +1038,7 @@ export const AjouterOffreScreen: React.FC<AjouterOffreScreenProps> = ({
                       {/* Search / Filter input */}
                       <div className="relative">
                         <input
+                          name="catalogSearch"
                           type="text"
                           value={catalogSearch}
                           onChange={(e) => setCatalogSearch(e.target.value)}

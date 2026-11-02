@@ -24,7 +24,7 @@ export const CONTACT = {
   phoneHref: 'tel:+243899350134',
   whatsappDisplay: '+243 899 350 134',
   whatsappHref: 'https://wa.me/243899350134',
-  email: 'contact@gbusinessimmo.cd',
+  email: 'admin@g-immobusiness.com',
   addressLine1: '75A Ngongo Lutete',
   addressLine2: 'Gombe, Kinshasa, RDC',
   addressFull: '75A Ngongo Lutete, Gombe, Kinshasa, République démocratique du Congo',
@@ -91,4 +91,3 @@ export const TESTIMONIALS: { quote: string; name: string; context: string; ratin
     rating: 5,
   },
 ];
-

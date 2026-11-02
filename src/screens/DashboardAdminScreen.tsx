@@ -30,12 +30,13 @@ import {
   Save,
   ExternalLink,
 } from 'lucide-react';
+import { useSeo } from '../seo';
 
 interface DashboardAdminScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType, tab?: DashboardTab) => void;
   properties: Property[];
   onUpdateStatus: (propertyId: string, newStatus: PropertyStatus) => void;
-  onDeleteProperty?: (propertyId: string) => void;
+  onDeleteProperty: (propertyId: string) => Promise<void>;
   onUpdateProperty?: (updatedProperty: Property) => void;
   onRefreshProperties?: () => Promise<void> | void;
   onEditProperty?: (property: Property) => void;
@@ -50,6 +51,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
   onRefreshProperties,
   onEditProperty,
 }) => {
+  useSeo({ title: 'Administration', noindex: true });
   // L'onglet actif vit dans l'URL (/admin?onglet=brouillons) : il survit au rafraîchissement
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('onglet') as DashboardTab | null;
@@ -59,6 +61,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
   const [previewProperty, setPreviewProperty] = useState<Property | null>(null);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [notificationType, setNotificationType] = useState<'success' | 'error'>('success');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const urgent = properties.filter((p) => p.status === 'Urgent');
@@ -78,8 +81,9 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
     ? Math.round(((vendu.length + enCours.length) / activeOrClosedCount) * 100)
     : 0;
 
-  const showNotification = (msg: string) => {
+  const showNotification = (msg: string, type: 'success' | 'error' = 'success') => {
     setNotification(msg);
+    setNotificationType(type);
     setTimeout(() => {
       setNotification((curr) => (curr === msg ? null : curr));
     }, 3500);
@@ -90,12 +94,15 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
     showNotification(`⚡ Le bien "${prop.title}" a été déplacé vers "${newStatus}" !`);
   };
 
-  const handleDeleteItem = (propId: string, title: string) => {
+  const handleDeleteItem = async (propId: string, title: string) => {
     if (window.confirm(`Confirmez-vous la suppression de "${title}" ?`)) {
-      if (onDeleteProperty) {
-        onDeleteProperty(propId);
+      try {
+        await onDeleteProperty(propId);
+        showNotification(`🗑️ Le bien "${title}" a été supprimé.`);
+      } catch (err) {
+        const detail = err instanceof Error ? ` ${err.message}` : '';
+        showNotification(`La suppression de "${title}" a échoué.${detail}`, 'error');
       }
-      showNotification(`🗑️ Le bien "${title}" a été supprimé.`);
     }
   };
 
@@ -110,15 +117,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
   };
 
   const handleDeleteDraft = async (propId: string, title: string) => {
-    if (onDeleteProperty) {
-      onDeleteProperty(propId);
-      showNotification(`Le brouillon "${title}" a été supprimé.`);
-    }
-    try {
-      await api.deleteProperty(propId);
-    } catch (err) {
-      console.warn('Erreur suppression API backend:', err);
-    }
+    await handleDeleteItem(propId, title);
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -198,6 +197,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
         <div className="flex items-center justify-between font-sans text-[12px]">
           <span className="text-[#747878] text-[11px] font-semibold uppercase">Statut :</span>
           <select
+            name={`status-${prop.id}`}
             value={prop.status}
             onChange={(e) => handleStatusChange(prop, e.target.value as any)}
             className="bg-[#F9F7F2] px-2 py-1 border border-[#8C6D3E]/30 outline-none text-[#0D0D0D] font-medium cursor-pointer text-[12px]"
@@ -445,9 +445,13 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
 
         {/* Global Notification Banner */}
         {notification && (
-          <div className="bg-[#0D0D0D] text-[#F9F7F2] px-6 py-3 border-b border-[#C5A059] flex items-center justify-between animate-fade-in sticky top-[65px] z-20 shadow-md">
+          <div className={`bg-[#0D0D0D] text-[#F9F7F2] px-6 py-3 border-b ${notificationType === 'error' ? 'border-rose-500' : 'border-[#C5A059]'} flex items-center justify-between animate-fade-in sticky top-[65px] z-20 shadow-md`}>
             <div className="flex items-center gap-3">
-              <CheckCircle2 size={18} className="text-[#C5A059]" />
+              {notificationType === 'error' ? (
+                <AlertCircle size={18} className="text-rose-400" />
+              ) : (
+                <CheckCircle2 size={18} className="text-[#C5A059]" />
+              )}
               <span className="font-sans text-[14px] font-medium">{notification}</span>
             </div>
             <button
@@ -976,6 +980,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                   Titre de l'annonce
                 </label>
                 <input
+                  name="title"
                   type="text"
                   value={editingProperty.title}
                   onChange={(e) => setEditingProperty({ ...editingProperty, title: e.target.value })}
@@ -990,6 +995,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                     Statut
                   </label>
                   <select
+                    name="status"
                     value={editingProperty.status}
                     onChange={(e) => setEditingProperty({ ...editingProperty, status: e.target.value as PropertyStatus })}
                     className="w-full bg-[#F9F7F2] border border-[#8C6D3E]/30 p-2 font-sans text-[13px] outline-none text-[#0D0D0D] cursor-pointer"
@@ -1007,6 +1013,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                     Type de bien
                   </label>
                   <select
+                    name="type"
                     value={editingProperty.type}
                     onChange={(e) => setEditingProperty({ ...editingProperty, type: e.target.value as any })}
                     className="w-full bg-[#F9F7F2] border border-[#8C6D3E]/30 p-2 font-sans text-[13px] outline-none text-[#0D0D0D] cursor-pointer"
@@ -1025,6 +1032,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                     Prix (USD)
                   </label>
                   <input
+                    name="numericPrice"
                     type="number"
                     value={editingProperty.numericPrice || ''}
                     onChange={(e) => {
@@ -1047,6 +1055,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                     Commune
                   </label>
                   <select
+                    name="commune"
                     value={editingProperty.commune}
                     onChange={(e) => setEditingProperty({ ...editingProperty, commune: e.target.value, location: `Kinshasa, ${e.target.value}` })}
                     className="w-full bg-[#F9F7F2] border border-[#8C6D3E]/30 p-2 font-sans text-[13px] outline-none text-[#0D0D0D] cursor-pointer"
@@ -1066,6 +1075,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                     Adresse
                   </label>
                   <input
+                    name="address"
                     type="text"
                     value={editingProperty.address || ''}
                     onChange={(e) => setEditingProperty({ ...editingProperty, address: e.target.value })}
@@ -1081,6 +1091,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                     Surface (m²)
                   </label>
                   <input
+                    name="surface"
                     type="number"
                     value={editingProperty.surface || ''}
                     onChange={(e) => setEditingProperty({ ...editingProperty, surface: parseInt(e.target.value, 10) || 0 })}
@@ -1093,6 +1104,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                     Chambres
                   </label>
                   <input
+                    name="bedrooms"
                     type="number"
                     value={editingProperty.bedrooms || ''}
                     onChange={(e) => setEditingProperty({ ...editingProperty, bedrooms: parseInt(e.target.value, 10) || 0 })}
@@ -1105,6 +1117,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                     Pièces totales
                   </label>
                   <input
+                    name="rooms"
                     type="number"
                     value={editingProperty.rooms || ''}
                     onChange={(e) => setEditingProperty({ ...editingProperty, rooms: parseInt(e.target.value, 10) || 0 })}
@@ -1118,6 +1131,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                   Description
                 </label>
                 <textarea
+                  name="description"
                   rows={3}
                   value={editingProperty.description}
                   onChange={(e) => setEditingProperty({ ...editingProperty, description: e.target.value })}
@@ -1141,6 +1155,7 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
                     />
                   </div>
                   <input
+                    name="imageUrl"
                     type="text"
                     value={editingProperty.imageUrl}
                     onChange={(e) => setEditingProperty({ ...editingProperty, imageUrl: e.target.value })}
@@ -1189,4 +1204,3 @@ export const DashboardAdminScreen: React.FC<DashboardAdminScreenProps> = ({
     </div>
   );
 };
-

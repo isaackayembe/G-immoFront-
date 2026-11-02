@@ -4,12 +4,18 @@ import { pathFor } from '../routes';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { ArrowRight, Home, Key, Building2, TrendingUp } from 'lucide-react';
+import { useSeo } from '../seo';
 
 interface ServicesScreenProps {
   onNavigate: (screen: ScreenId, transition?: TransitionType) => void;
 }
 
 export const ServicesScreen: React.FC<ServicesScreenProps> = ({ onNavigate }) => {
+  useSeo({
+    title: 'Nos services immobiliers',
+    description:
+      'Vente, achat, location et investissement immobilier à Kinshasa : G Business Immo vous accompagne à chaque étape de votre projet.',
+  });
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F7F2] text-[#0D0D0D]">
       <Header currentScreen="services" onNavigate={onNavigate} />

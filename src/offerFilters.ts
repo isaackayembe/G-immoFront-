@@ -69,9 +69,6 @@ export const KINSHASA_COMMUNES = [
   'Selembao',
 ];
 
-/** Communes mises en avant sur l'accueil (« Nos Quartiers ») même sans bien en ligne. */
-export const MAIN_COMMUNES = ['Gombe', 'Ngaliema', 'Limete'];
-
 /** Compare deux noms de commune sans tenir compte des accents, majuscules, tirets ou apostrophes. */
 const normalize = (s: string) =>
   s
@@ -94,9 +91,9 @@ export function communeOptions(properties: Property[]): string[] {
   return withPropertyCommunes(KINSHASA_COMMUNES, properties);
 }
 
-/** Communes affichées dans « Nos Quartiers » : les principales + celles où l'agence a des biens. */
+/** Communes affichées dans « Nos Quartiers » : uniquement celles où l'agence a des biens. */
 export function showcaseCommunes(properties: Property[]): string[] {
-  return withPropertyCommunes(MAIN_COMMUNES, properties);
+  return withPropertyCommunes([], properties);
 }
 
 export function sameCommune(a: string | undefined | null, b: string): boolean {
