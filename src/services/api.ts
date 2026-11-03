@@ -91,8 +91,8 @@ class ApiService {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
+  private async request<T>(endpoint: string, options: RequestInit = {}, baseUrl = API_BASE_URL): Promise<T> {
+    const url = `${baseUrl}${endpoint}`;
     const headers = {
       ...this.getAuthHeaders(),
       ...(options.headers || {}),
@@ -364,11 +364,14 @@ class ApiService {
   // ==========================================
 
   // Public : Soumission formulaire de contact
+  // En production : fonction Vercel /api/contact (enregistre dans Django puis envoie l'email à l'agence).
+  // En local (npm run dev, sans fonctions Vercel) : directement Django, sans email.
   async sendContactMessage(payload: ContactMessagePayload): Promise<ContactResponse> {
-    return this.request<ContactResponse>('/contact/', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
+    const options = { method: 'POST', body: JSON.stringify(payload) };
+    if ((import.meta as any).env?.DEV) {
+      return this.request<ContactResponse>('/contact/', options);
+    }
+    return this.request<ContactResponse>('/api/contact', options, '');
   }
 
   // Admin : Liste des messages reçus

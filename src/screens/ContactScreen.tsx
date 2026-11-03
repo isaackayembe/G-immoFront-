@@ -43,10 +43,12 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onNavigate }) => {
         subject: formData.subject || 'Demande de contact',
         message: formData.message,
       });
-      if (!response?.success) {
-        throw new Error(response?.message || "Le serveur n'a pas confirmé l'envoi du message.");
+      // Toute réponse 2xx = message enregistré (une erreur HTTP lève déjà une exception).
+      // Le backend renvoie le message créé : son champ « message » est le texte du client, pas une confirmation.
+      if (response?.success === false) {
+        throw new Error("Le serveur n'a pas confirmé l'envoi du message.");
       }
-      setSuccessMessage(response.message);
+      if (response?.success === true && response.message) setSuccessMessage(response.message);
       setSubmitted(true);
     } catch (err) {
       console.error("Échec de l'envoi du formulaire de contact :", err);
